@@ -1,0 +1,1 @@
+void desencriptar_numero(char *, char *);

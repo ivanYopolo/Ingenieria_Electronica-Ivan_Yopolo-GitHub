@@ -1,0 +1,1 @@
+void desencriptar_texto(char *, char *, int);
