@@ -2,7 +2,6 @@
 *.Identifier
 *.bin
 *.[oa]
-*~
 *.out
 *.
 *.txt
