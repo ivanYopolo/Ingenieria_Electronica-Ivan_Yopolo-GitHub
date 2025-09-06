@@ -3,7 +3,7 @@
  * Contar palabras y la cantidad de veces que aparece
  * una palabra clave (como "diodo").
  *
- * Comando: gcc -Wall --pedantic-errors includes.c main.c 
+ * Comando: gcc -Wall --pedantic-errors includes.c main.c -o prog.bin
  */
 
 #include "includes.h"
