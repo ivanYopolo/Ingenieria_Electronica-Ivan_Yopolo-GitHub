@@ -81,179 +81,59 @@ char * contarPalabras( int fdi, int *cantidadPalabras ){
 
 
 //--------------------------------------------------------------------------
-//                           contarPalabraClave2
-//--------------------------------------------------------------------------
-// Cuenta la cantidad de palabras CLAVE en el archivo 
-// (varios Bytes/lectura).
-// Dicha palabra la obtiene como input del usuario.
-// Devuelve la palabra clave dinámicamente.
-/* # PROBLEMA #
- * Cuando el string se corta al final de "buf".
- *
- * # SOLUCIÓN #
- * Hacer el tamaño de buffer una longitud X más el tamaño del string clave a comparar
- * Ej.: char *buf = calloc( TAM_BUF + strlen( mensajeClave ) + 1, sizeof(char) );
- * Después, al final de cada lectura se guardan los últimos bytes equivalentes al tamaño de mensajeClave en un temporal.
- * Al inicio de una nueva lectura, se comienza a leer antes de esos bytes temporales de tamaño mensajeClave.
- */
- 
-/* # PSEUDOCÓDIGO #
- * Leer una cantidad de Bytes de TAM_STR más lo que ocupe la palabra clave; guardar en "buf".
- * Mientras no se termine el archivo:
- *    Mientras no se termine el array "buf":
- *       Comparar strings entre "buf" y "palabraClave", hasta la longitud de "palabraClave".
- *       Si se encuentra una coincidencia exacta:
- *          Incrementar contador de "cantidadPalabras" en 1.
- *    Guardar los últimos Bytes de "buf" al inicio del mismo, correspondientes a la longitud de "palabraClave".
- *    Hacer una lectura después de estos últimos Bytes.
- */
-char * contarPalabraClave2( int fdi, int *cantidadPalabras ){
-   int  cant = 1;
-   char letra = 0;
-   int  cursorTemp = 0;
-   int  cursorBuf = 0;         // Para escanear el buf.
-   int  cursorClave = 0;       // Guarda la última posición comparada en palabraClave.
-   char *buf = NULL;
-   char *palabraClave = NULL;  // Palabra clave a buscar.
-   long longitudClave = 0;     // Longitud de la palabra clave.
-
-   printf( "Ingrese la palabra clave a buscar:\t\t" );
-   palabraClave = writeStrD();
-
-   longitudClave = strlen( palabraClave );   // Longitud del string + '\0'.
-   buf = calloc( longitudClave + TAM_STR, sizeof(char) );
-   cant = read( fdi, buf, longitudClave + TAM_STR );   // cant = Bytes leídos.
-
-   // Cuenta la cantidad de palabras CLAVE encontradas.
-   while ( cant != 0 && palabraClave != NULL ){
-     
-     // printf( "\n[ letra = %d ]\n", letra );
-     
-      do{ // Repite hasta llegar al final de buf.
-         
-         if ( !letra ){  // Busca 1° letra de palabraClave.
-         
-            if( buf[ cursorBuf ] == palabraClave[ cursorClave ] ){   // Detectó una letra.
-             
-               letra = 1;
-            }else{
-                 
-               // printf( "Buscando primera letra...\n" );
-               cursorBuf++;
-            }
-         }else{  // Se detectó primera coincidencia.
-             
-            if ( buf[ cursorBuf ] == palabraClave[ cursorClave ] && \
-                  cursorClave < strlen( palabraClave ) ){  // Busca espacios.
-             
-               // printf( "Buscando espacios...\n" );
-               // printf( "\n[ buf[ cursorBuf ] = %c ]\n", buf[ cursorBuf ] );
-               cursorBuf++;
-               cursorClave++;
-            }else{   // Sale, o detectó una coincidencia exacta, o un falso positivo, o se cortó el string.
-             
-               if ( buf[ cursorBuf - 1 ] == palabraClave[ cursorClave - 1 ] && \
-                     palabraClave[ cursorClave ] == '\0' ){   // Checkea por coincidencia exacta.
-                     
-                  // printf( "\n[ COINCIDENCIA ]\n" );
-                  (*cantidadPalabras)++;  // Suma el contador.
-               }
-                 
-               cursorClave = 0;
-               letra = 0;
-            }
-         }
-         
-         printf( "%c", buf[ cursorBuf ] );
-      }while ( cursorBuf + cursorTemp < cant );  // Llego al final de buf.
-        
-      printf( "\n# Llegó al final del buf #\n" );
-        
-      // cursorBuf--;
-        
-      // Guarda los últimos bytes correspondientes a longitudClave en las primeras posiciones.
-      for ( cursorTemp = 0; cursorTemp < longitudClave; cursorTemp++ ){
-            
-         buf[ cursorTemp ] = buf[ cursorBuf - longitudClave + cursorTemp ];
-         printf( "\n[ buf[ cursorTemp ] = %c ]\n", buf[ cursorTemp ] );
-      }
-        
-      // printf( "\n[ cant             = %d ]\n", cant );
-      // printf( "\n[ cursorBuf        = %d ]\n", cursorBuf );
-        
-      // Se saltea los primeros Bytes (anteriores/antiguos).
-      cant = read( fdi, buf + cursorTemp, TAM_STR );   // cant = Bytes leídos.
-        
-      cursorBuf = 0;  // Para escanear el buf.
-   }   // Llegó al final del archivo.
-
-   return palabraClave;
-}
-
-
-//--------------------------------------------------------------------------
 //                           contarPalabraClave
 //--------------------------------------------------------------------------
 // Cuenta la cantidad de palabras CLAVE en el archivo 
 // (varios Bytes/lectura).
 // Dicha palabra la obtiene como input del usuario.
 // Devuelve la palabra clave dinámicamente.
-/* # PSEUDOCÓDIGO #
- * Leer una cantidad de Bytes de TAM_STR más lo que ocupe la palabra clave; guardar en "buf".
- * Mientras no se termine el archivo:
- *    Mientras no se termine el array "buf":
- *       Comparar strings entre "buf" y "palabraClave", hasta la longitud de "palabraClave".
- *       Si se encuentra una coincidencia exacta:
- *          Incrementar contador de "cantidadPalabras" en 1.
- *    Guardar los últimos Bytes de "buf" al inicio del mismo, correspondientes a la longitud de "palabraClave".
- *    Hacer una lectura después de estos últimos Bytes.
- */
 char * contarPalabraClave( int fdi, int *cantidadPalabras ){
    int  cant = 1;
    char *buf = NULL;
    char *palabraClave = NULL;  // Palabra clave a buscar.
-   long longitudClave = 0;     // Longitud de la palabra clave.
+   long longitudClave = 0;     // Longitud del string clave.
+   
+   // Deja los datos en un archivo de LOG (tipo debugging).
+   int fdlog = open( "dump.log", O_WRONLY | O_TRUNC | O_CREAT, 0666 );
 
    printf( "Ingrese la palabra clave a buscar:\t\t" );
    palabraClave = writeStrD();
 
    longitudClave = strlen( palabraClave );   // Longitud del string.
-   buf = calloc( longitudClave + TAM_STR, sizeof(char) );
+   buf = calloc( longitudClave + TAM_STR, sizeof(char) );   // Tamaño dependiente del string clave.
    cant = read( fdi, buf, longitudClave + TAM_STR );   // cant = Bytes leídos.
    
    buf[ cant - 1 ] = '\0';
+   
+   dprintf( fdlog, "[ BUF tiene tamaño de: %ld + %d = %ld B. ]\n", longitudClave, TAM_STR, longitudClave + TAM_STR );
+   dprintf( fdlog, "[ \'\\0\' ubicado en índice: %d ]\n\n", cant - 1 );
 
    while ( cant > 0 && palabraClave != NULL ){
    
+      // Por si hay más de 1 coincidencia en 1 sola lectura:
       char *temp = buf;
       while( ( temp = strstr( temp, palabraClave ) ) != NULL ){
          
          (*cantidadPalabras)++;
          temp++;
-      }
+      }  // Sale si es NULL (no encontró coincidencias).
       
-      for( int i = 0; i < longitudClave + TAM_STR; i++ ){
-         
-         printf( "%c", buf[ i ] );
-      }
+      // Lo guarda en un archivo de log para analizar el texto.
+      dprintf( fdlog, "%ld -- %s\n", strlen( buf ), buf );
 
-      // /*
       // Guarda los últimos bytes correspondientes a longitudClave en las primeras posiciones.
       for ( int cursorTemp = 0; cursorTemp < longitudClave; cursorTemp++ ){
          
-         buf[ cursorTemp ] = buf[ cant + cursorTemp - 1 ];
+         buf[ cursorTemp ] = buf[ TAM_STR + cursorTemp - 1 ];
       }
-      // */
-      
-      // strncpy( buf, buf + cant, longitudClave );
         
       // Se saltea los primeros Bytes (anteriores/antiguos).
-      cant = read( fdi, buf + longitudClave + 1, TAM_STR );   // cant = Bytes leídos.
-      
-      buf[ cant + longitudClave - 1 ] = '\0';
-      
-      printf( "\n[ cant             = %d ]\n", cant );
-   }
+      cant = read( fdi, buf + longitudClave, strlen( buf ) - longitudClave );   // cant = Bytes leídos.
+   }  // Llegó al final del archivo.
+   
+   free( buf );
+   
+   close( fdlog );
    
    return palabraClave;
 }
