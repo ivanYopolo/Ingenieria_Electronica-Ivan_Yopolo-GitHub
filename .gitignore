@@ -8,3 +8,5 @@
 *.txt
 *.log
 *.save
+*.swp
+*.data
