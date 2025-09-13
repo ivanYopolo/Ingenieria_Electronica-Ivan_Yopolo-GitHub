@@ -173,18 +173,18 @@ void pushNode( Nodo_s **startNode, Nodo_s *newNode ){
 // -----------------------------------------------------------------------------------
 // Saca un nodo de la lista (FIFO).
 void popNode( Nodo_s **startNode ){
-    // Se toma doble pointer porque se necesita cambiar los datos
-    // del puntero en sí, que apunte a otro lado este mismo.
-    
-    Nodo_s *nodeAux = *startNode;   // Auxiliar para apuntar al nodo "n".
-    
-    *startNode = nodeAux->next;    // Apunta al nodo "n+1". 
-    
-    // Libera memoria de nombres y apellidos (strings dinámicos).
-    free( nodeAux->data.nombres );
-    free( nodeAux->data.apellidos );
-    
-    free( nodeAux );    // Libera el nodo "n".
+   // Se toma doble pointer porque se necesita cambiar los datos
+   // del puntero en sí, que apunte a otro lado este mismo.
+
+   Nodo_s *nodeAux = *startNode;   // Auxiliar para apuntar al nodo "n".
+
+   *startNode = nodeAux->next;    // Apunta al nodo "n+1". 
+
+   // Libera memoria de nombres y apellidos (strings dinámicos).
+   free( nodeAux->data.nombres );
+   free( nodeAux->data.apellidos );
+
+   free( nodeAux );    // Libera el nodo "n".
 }
 
 
