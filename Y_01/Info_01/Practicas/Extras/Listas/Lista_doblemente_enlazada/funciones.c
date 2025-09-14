@@ -1,0 +1,658 @@
+/* # Lista DOBLEMENTE enlazada #
+ * # Opciones MENÚ #
+ * Cargar base de datos.
+ * Realizar ABM (altas-bajas-modificaciones) del equipamiento.
+   * ABM: Agregar (altas), eliminar (bajas) o modificar REGISTROS/DATOS.
+ * Guardar base de datos con nombre.
+ * Ordenar los elementos por especialidad, precio o disponibilidades.
+ * Mostrar todos los elementos de una determinada especialidad.
+ * Mostrar la fecha de la base de datos.
+ *
+ * Cada NODO de la lista va a ser un SKU de equipamiento.
+ * Los IDs se repiten si los SKUs también se repiten.
+ *
+ * El campo id será asignado en forma dinámica por el programa; 
+ * mientras que el resto de la información deberá ser 
+ * proporcionada por el usuario.
+ * 
+ * # Especialidades #
+ * Cardiología.
+ * Clínica.
+ * Gastroenterología.
+ * Cirugía. 
+ * Dermatología. 
+ * Oftalmología.
+ * Traumatología.
+ *
+ * # IMPORTANTE #
+ * Los primeros 11 Bytes del archivo deberán indicar 
+ * la fecha de la base de datos en el siguiente formato: DD/MM/YYYY.
+ */
+
+#include "includes.h"
+
+
+//------------------------------------------------------------------------
+// menu - [ DONE ]
+//------------------------------------------------------------------------
+int menu(){
+   int menuSelect = 0;
+
+   printf( "\n"
+           "1) Cargar datos desde una base de datos.\n"
+           "2) Agregar, quitar o modificar datos.\n" 
+           "3) Guardar cambios de la base de datos.\n" 
+           "4) Ordenar los elementos por especialidad, precio o disponibilidades.\n" 
+           "5) Mostrar todos los elementos de una determinada especialidad.\n" 
+           "6) Mostrar la fecha de una base de datos.\n" );
+
+   do{
+      printf( "\nOpción (0 o negativo para finalizar):\t\t" );
+      
+      scanf( "%d", &menuSelect );
+      int ch = 0;
+      while ( ( ch = getchar() ) != '\n' && ch != EOF );
+   }while ( menuSelect > 6 );
+   
+   return menuSelect;
+}
+
+
+//------------------------------------------------------------------------
+// getUserInput - [ DONE ]
+//------------------------------------------------------------------------
+/* Cargar:
+    * SKU.
+    * Descripción.
+    * Detalles.
+    * Cantidad (stock).
+    * Especialidad.
+ */
+Nodo_t * getUserInput( Nodo_t **startNode ){
+   int sku = 1;
+   int stock = 1;
+   int especialidadTemp = 1;
+   float precioTemp = 0;
+   
+   Dato_t *newData = malloc( sizeof(Dato_t) );
+   
+   printf( "Ingrese los datos del producto en forma ordenada:\n" );
+   
+   // # SKU #
+   do{
+      printf( "* SKU:\t" );
+      
+      scanf( "%d", &sku );
+      int ch = 0;
+      while ( ( ch = getchar() ) != '\n' && ch != EOF );
+      
+      if ( sku < 1 )
+         printf( "[ SKU INVÁLIDO. INTENTE NUEVAMENTE. ]\n\n" );
+   }while ( sku < 1 );
+   newData->sku = sku;
+   
+   
+   // # Descripción #
+   printf( "* Descripción:\t" );
+   
+	while( fgets( newData->descripcion, TAM_DESC, stdin ) == NULL ){
+      printf( "[ ERROR: POR FAVOR, ESCRIBA DE VUELTA. ]\n" );
+   }	// ERROR
+	
+	// Flushea el buffer:
+	if( newData->descripcion[ strlen( newData->descripcion ) - 1 ] != '\n' ){
+		int ch = 0;
+		while( ( ch = getchar() ) != '\n' && ch != EOF );
+	}
+   
+	// Si se detecta un salto de línea:
+	if( newData->descripcion[ strlen( newData->descripcion ) - 1 ] == '\n' ){
+      newData->descripcion[ strlen( newData->descripcion ) - 1 ] = '\0';
+   }
+   
+   
+   // # Detalles #
+   printf( "* Detalles:\t" );
+   
+   while( fgets( newData->detalles, TAM_DET, stdin ) == NULL ){
+      printf( "[ ERROR: POR FAVOR, ESCRIBA DE VUELTA. ]\n" );
+   }	// ERROR
+	
+	// Flushea el buffer:
+	if( newData->detalles[ strlen( newData->detalles ) - 1 ] != '\n' ){
+		int ch = 0;
+		while( ( ch = getchar() ) != '\n' && ch != EOF );
+	}
+   
+	// Si se detecta un salto de línea:
+	if( newData->detalles[ strlen( newData->detalles ) - 1 ] == '\n' ){
+      newData->detalles[ strlen( newData->detalles ) - 1 ] = '\0';
+   }
+   
+   
+   // # Cantidad (stock) #
+   do{
+      printf( "* Cantidad en stock:\t" );
+      
+      scanf( "%d", &stock );
+      int ch = 0;
+      while ( ( ch = getchar() ) != '\n' && ch != EOF );
+      
+      if ( stock < 1 )
+         printf( "[ STOCK INVÁLIDO. INTENTE NUEVAMENTE. ]\n\n" );
+   }while ( stock < 1 );
+   newData->cantidad = stock;
+   
+   
+   // # Especialidad #
+   do{
+      printf( "* # Especialidad #\n"
+              "   1) Cardiología.\n"
+              "   2) Clínica.\n"
+              "   3) Gastroenterología.\n"
+              "   4) Cirugía.\n"
+              "   5) Dermatología.\n"
+              "   6) Oftalmología.\n"
+              "   7) Traumatología.\n" 
+              "Opción:\t" );
+      
+      scanf( "%d", &especialidadTemp );
+      int ch = 0;
+      while ( ( ch = getchar() ) != '\n' && ch != EOF );
+      
+      if ( especialidadTemp < 1 && especialidadTemp > 7 )
+         printf( "[ ESPECIALIDAD INVÁLIDA. INTENTE NUEVAMENTE. ]\n\n" );
+   }while ( especialidadTemp < 1 && especialidadTemp > 7 );
+   newData->especialidad = especialidadTemp;
+   
+   
+   // # PRECIO #
+   do{
+      scanf( "%f", &precioTemp );
+      int ch = 0;
+      while ( ( ch = getchar() ) != '\n' && ch != EOF );
+      
+      if ( precioTemp < 0 )
+         printf( "[ PRECIO INVÁLIDO. INTENTE NUEVAMENTE. ]\n\n" );
+   }while ( precioTemp < 0 );
+   newData->precio = precioTemp;
+   
+   
+   // Carga todo a un nuevo nodo.
+   Nodo_t *newNode = createNode( &newData );
+   
+   // Agrega nodo a la lista (FIFO).
+   pushNode( &startNode, newNode );
+   
+   return newNode;
+}
+
+
+//------------------------------------------------------------------------
+// popNode - [ DONE ]
+//------------------------------------------------------------------------
+/* Saca un nodo de la lista (FIFO).
+ * Verifiicar casos:
+    * Nodo del diome.
+    * Nodo final.
+    * Nodo inicial.
+ */
+void popNode( Nodo_t **nodeX ){
+   Nodo_t *nodeAux = NULL;
+   
+   if ( *nodeX != NULL ){
+      // Caso primer nodo:
+      if ( (*nodeX)->prevNode == NULL ){
+         // Auxiliar apunta al nodo "n".
+         nodeAux = (*nodeX);  
+         
+         // Apunta al nodo "n+1", elimina el anterior. 
+         (*nodeX) = (*nodeX)->nextNode; 
+         
+         // "n-1" pasa a ser NULL.
+         (*nodeX)->prevNode = NULL;   
+         
+         free( nodeAux );    
+      }else
+      
+      // Caso último nodo:
+      if ( (*nodeX)->nextNode == NULL ){
+         // Nodo "n-1" "NULL", elimina el actual. 
+         (*nodeX)->prevNode = NULL; 
+         
+         free( *nodeX );
+      }
+      
+      // Caso nodo del diome:
+      if ( (*nodeX)->nextNode != NULL && (*nodeX)->prevNode != NULL ){
+         // Auxiliar apunta al nodo "n".
+         nodeAux = (*nodeX);  
+         // Apunta a "n-1".
+         Nodo_t *backNode  = (*nodeX)->prevNode;
+         // Apunta a "n+1".
+         Nodo_t *frontNode = (*nodeX)->nextNode;
+         
+         // Back & Front se enlazan entre sí, perdiendo a "nodeX".
+         backNode->nextNode  = frontNode;
+         frontNode->prevNode = backNode;
+         
+         free( nodeAux );    
+      }
+      
+   }
+}
+
+
+//------------------------------------------------------------------------
+// pushNode
+//------------------------------------------------------------------------
+/* Agrega un nodo a la lista (FIFO).
+ * Ver manera de hacer INSERCIÓN ORDENADA.
+ */
+void pushNode( Nodo_t **startNode, Nodo_t *newNode ){
+   // El siguiente del Nodo nuevo apunta al viejo inicio de la lista (FIFO).
+   newNode->nextNode = *startNode;
+   
+   // El viejo anterior deja de ser NULL y pasa a ser el nuevo Nodo.
+   (*startNode)->prevNode = newNode;
+   
+   // El inicio de la lista es el nuevo Nodo.
+   *startNode = newNode;
+   
+   // El anterior es el NULL.
+   newNode->prevNode = NULL;
+}
+
+
+//------------------------------------------------------------------------
+// createNode - [ DONE ]
+//------------------------------------------------------------------------
+/* Crea un nodo en la lista (FIFO).
+ */
+Nodo_t * createNode( Dato_t *datoX ){
+   // Asigna nuevo Nodo de forma DINÁMICA (queda en el HEAP).
+   Nodo_t *newNode = (Nodo_t *) malloc( sizeof(Nodo_t) );
+   
+   // Anterior y siguiente apuntan a NULL.
+   newNode->prevNode = NULL;
+   newNode->nextNode = NULL;
+   
+   // Copia structs de DATOS.
+   newNode->dato = *datoX;
+   
+   return newNode;
+}
+
+
+//--------------------------------------------------------------------------
+// writeStrD - [ DONE ]
+//--------------------------------------------------------------------------
+// Agarra un string del Kernel y lo guarda en un string.
+// ### DINÁMICO ###
+char * writeStrD(){
+   char strI[ TAM_STR ];
+
+   // No poner strlen() porque toma el salto de línea.
+	while( fgets( strI, TAM_STR, stdin ) == NULL ){
+      printf( "[ ERROR: POR FAVOR, ESCRIBA DE VUELTA. ]\n" );
+   }	// ERROR
+	
+	// Flushea el buffer:
+	if( strI[ strlen( strI ) - 1 ] != '\n' ){
+ 
+		int ch = 0;
+		while( ( ch = getchar() ) != '\n' && ch != EOF );
+   }
+
+	// Si se detecta un salto de línea:
+	if( strI[ strlen( strI ) - 1 ] == '\n' ){
+      strI[ strlen( strI ) - 1 ] = '\0';
+   }
+
+   // Aloja memoria en el HEAP para el string.
+   char *strO = (char *) calloc( strlen( strI ), sizeof(char) );
+  
+   strcpy( strO, strI );
+  
+   return strO;
+}
+
+
+//------------------------------------------------------------------------
+// cargarDatos
+//------------------------------------------------------------------------
+/* Carga datos de un archivo de base de datos en la lista.
+ * NO SOBREESCRIBE LISTA, sinó que agrega nodos a la misma.
+ * Si se repiten SKUs, se juntan en un NODO los datos y se suman su "stock".
+ * Usar ".dat".
+ * Devuelve la fecha leída.
+ */
+char * cargarDatos( Nodo_t *startNode ){
+   int fdDat = 2;
+   int bytesRd = 0;
+   char *fechaTemp = malloc( TAM_DATE * sizeof(char) );
+   
+   do{
+      printf( "Ingrese el nombre del archivo a cargar información.\n"
+              "Utilizar solamente archivos con extensión \'.dat\':\n" );
+      
+      char *nombreArchivo = writeStrD();
+      
+      fdDat = open( nombreArchivo, O_RDONLY );
+      
+      if ( fdDat < 1 ){
+         printf( "\n[ ERROR: NOMBRE DE ARCHIVO INVÁLIDO. ]\n\n" );
+         free( nombreArchivo );
+      }
+   }while ( fdDat < 1 );
+   
+   
+   // Carga datos a la lista.
+   Nodo_t nodoLectura;
+   bytesRd = read( fdDat, fechaTemp, TAM_DATE );
+   
+   
+   // Checkea los SKUs.
+   
+   
+   return fechaTemp;
+}
+
+
+//------------------------------------------------------------------------
+// modificarDatos (ABM)
+//------------------------------------------------------------------------
+/* Agrega (alta), saca (baja) o modifica nodos de la lista (datos).
+ */
+void modificarDatos( Nodo_t *startNode ){
+   int seleccion = 1;
+   int skuTemp = 1;
+   char descripcionTemp[ TAM_DESCR ];
+   char detallesTemp[ TAM_DET ];
+   Nodo_t *nodoX = NULL;
+   
+   /* # Especialidades #
+    1) Cardiología.
+    2) Clínica.
+    3) Gastroenterología.
+    4) Cirugía. 
+    5) Dermatología. 
+    6) Oftalmología.
+    7) Traumatología.
+    */
+
+   // Selección de SKU (nodo):
+   do{
+      printf( "Ingrese el SKU del producto a modificar:\t" );
+      
+      scanf( "%d", &skuTemp );
+      int ch = 0;
+      while ( ( ch = getchar() ) != '\n' && ch != EOF );
+      
+      if ( skuTemp < 1 )
+         printf( "\n[ SKU INVÁLIDO. INGRESE NUEVAMENTE EL DATO. ]\n\n" );
+   } while ( skuTemp < 1 );
+
+   do{
+      printf( "Elija el dato a modificar:\n"
+              "1) SKU.\n" 
+              "2) Descripción.\n" 
+              "3) Detalles.\n" 
+              "4) Cantidad.\n" 
+              "5) Especialidad.\n" );
+      
+      scanf( "%d", &seleccion );
+      int ch = 0;
+      while ( ( ch = getchar() ) != '\n' && ch != EOF );
+      
+      if ( seleccion < 1 || seleccion > 5 )
+         printf( "\n[ SELECCIÓN INVÁLIDA. ]\n\n" );
+   } while ( seleccion < 1 || seleccion > 5 );
+   
+   switch ( seleccion ){
+      case 1:  // SKU.
+         do{
+            printf( "Ingrese el nuevo SKU:\t" );
+            
+            scanf( "%d", &(nodoX->sku) );
+            int ch = 0;
+            while ( ( ch = getchar() ) != '\n' && ch != EOF );
+            
+            if ( nodoX->sku < 1 )
+               printf( "\n[ SKU INVÁLIDO. INGRESE NUEVAMENTE EL DATO. ]\n\n" );
+         } while ( nodoX->sku < 1 );
+      break;
+      
+      case 2:  // Descripción.
+         printf( "Ingrese la nueva descripción:\t" );
+      break;
+      
+      case 3:  // Detalles.
+         
+      break;
+      
+      case 4:  // Cantidad.
+         
+      break;
+      
+      case 5:  // Especialidad.
+         
+      break;
+   }
+}
+
+
+//------------------------------------------------------------------------
+// guardarDatos - [ REV ]
+//------------------------------------------------------------------------
+/* Guarda la lista entera en un archivo de base de datos.
+ * Usar '.dat'.
+ */
+void guardarDatos( Nodo_t *startNode ){
+   int fdDat = 1;
+   char *nombreTemp;
+   char *nombreArchivo;
+   int sobreescribir = 0;
+   Nodo_t *temp = startNode;
+   
+   // Verificar nombre del archivo por input del usuario.
+   do{
+      printf( "Elija un nombre para el archivo a guardar\t" );
+      nombreTemp = writeStrD();
+      
+      if ( nombreTemp == NULL )
+         printf( "\n[ ERROR: INGRESE UN NOMBRE VÁLIDO. ]\n\n" );
+      
+      // Agregar el '.dat' y pasarlo a "nombreArchivo".
+      nombreArchivo = calloc( strlen( nombreTemp ) + 5, sizeof(char) );
+      strcat( nombreArchivo, nombreTemp );
+      strcat( nombreArchivo, ".dat" );
+      
+      // Evaluar nombres repetidos.
+      if ( open( nombreArchivo, O_RDONLY ) > 1 )
+         do{
+            printf( "\nExiste un archivo con el mismo nombre, ¿desea sobreescibirlo?\n"
+                    "1) Sí.\n"
+                    "2) No.\n" 
+                    "Opción:\t" );
+            
+            scanf( "%d", &sobreescribir );
+            int ch = 0;
+            while ( ( ch = getchar() ) != '\n' && ch != EOF );
+            
+            if ( sobreescribir != 1 && sobreescribir != 2 )
+               printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n" );
+         } while ( sobreescribir != 1 && sobreescribir != 2 );
+         
+         switch ( sobreescribir ){
+            case 1:  // Sobreescritura.
+               fdDat = open( nombreArchivo, O_WRONLY | O_CREAT | O_TRUNC, 0666 );
+            break;
+         
+            case 2:  // Vuelve a elegir el nombre del archivo.
+               nombreArchivo = NULL;
+            break;
+         }
+   } while ( nombreArchivo == NULL ); // Nombró correctamente el archivo.
+   
+   // Obtiene la fecha actual en formato "DD/MM/YYYY".
+   write( fdDat, fechaAct, TAM_DATE );
+   
+   // Guarda los DATOS en un archivo.
+   while ( temp != NULL ){
+      write( fdDat, temp->dato, sizeof(Dato_t) );
+      temp = temp->nextNode; 
+   }  // Terminó de guardar los datos.
+}
+
+
+//------------------------------------------------------------------------
+// ordenarDatos
+//------------------------------------------------------------------------
+/* Ordenar los elementos por:
+    * Especialidad.
+    * Precio.
+    * Disponibilidades.
+ */
+int ordenarDatos( const Nodo_t *startNode, int ordenamiento[] ){
+   int nuevoOrdenamiento = 0;
+   int sentidoOrdenamiento = 0;
+   
+   // Tipo de dato a ordenar.
+   do{
+      printf( 
+      "\n# Seleccione con qué dato ordenar el inventario #\n" 
+      "1) Especialidad.\n" 
+      "2) Precio.\n" 
+      "3) Disponibilidad (stock).\n" );
+      
+      scanf( "%d", &ordenamiento );
+      int ch = 0;
+      while ( ( ch = getchar() ) != '\n' && ch != EOF );
+      
+      if ( ordenamiento > 3 && ordenamiento < 1 )
+         printf( "\n[ ERROR: INGRESE UNA OPCIÓN VÁLIDA. ]\n" );
+   } while ( ordenamiento > 3 && ordenamiento < 1 );
+   
+   nuevoOrdenamiento = ordenamiento[ 0 ];
+   
+   // Sentido de ordenamiento.
+   do{
+      printf( 
+      "\n# Seleccione el sentido del ordenamiento #\n" 
+      "1) Ascendente.\n" 
+      "2) Descendente.\n" );
+      
+      scanf( "%d", &sentidoOrdenamiento );
+      int ch = 0;
+      while ( ( ch = getchar() ) != '\n' && ch != EOF );
+      
+      if ( sentidoOrdenamiento > 2 && sentidoOrdenamiento < 1 )
+         printf( "\n[ ERROR: INGRESE UNA OPCIÓN VÁLIDA. ]\n" );
+   } while ( sentidoOrdenamiento > 2 && sentidoOrdenamiento < 1 );
+   
+   sentidoOrdenamiento = ordenamiento[ 1 ];
+   
+   /* Ordenamiento: array de ints (2 pos):
+    * 0: Dato a ordenar.
+    * 1: Sentido de ordenamiento.
+    */
+   
+   // Ordenamiento en sí mismo.
+   sortList( startNode, ordenamiento );
+
+   return nuevoOrdenamiento;
+}
+
+
+//------------------------------------------------------------------------
+// sortList
+//------------------------------------------------------------------------
+void sortList( const Nodo_t *startNode, const int ordenamiento[] ) {
+   Node_t *nodoX = NULL;
+   // Puntero a función con array de funciones.
+   // Cada una ordena según las 3 opciones.
+   int (* ordenamientoLista[ 2 ][ 3 ])( Nodo_t *backNode, Nodo_t *frontNode ) = 
+      { ordenEspecialidadASC, ordenPrecioASC, ordenDisponibilidadASC }, // Ascendente.
+      { ordenEspecialidadDES, ordenPrecioDES, ordenDisponibilidadDES }; // Descendente.
+   
+   /* Ordenamiento: array de ints (2 pos):
+    * 0: Dato a ordenar.
+    * 1: Sentido de ordenamiento.
+    */
+   
+   // Ordenamiento de la lista (bubblesort).
+   nodoX = startNode;
+   for ( int pasada = 0; nodoX != NULL; pasada++ ) {
+   
+      for ( int elemento = 0; elemento < pasada - 1; elemento++ ) {
+      
+         if ( (*ordenamientoLista)[ ordenamiento[ 1 ] ][ ordenamiento[ 0 ] ]( nodoX, nodoX->nextNode ) )
+            swapNodes( nodoX, nodoX->nextNode );
+         
+         nodoX = nodoX->nextNode;
+      }
+   }
+}
+
+
+//------------------------------------------------------------------------
+// mostrarDatos - [ DONE ]
+//------------------------------------------------------------------------
+/* Mostrar todos los elementos de una determinada especialidad.
+ */
+void mostrarDatos( Nodo_t *startNode ){
+   int especialidadInput = 0;
+   Nodo_t *nodoX = startNode;
+   
+   do{
+      printf( "Elija la especialidad a mostrar:\n"
+              "   1) Cardiología.\n"
+              "   2) Clínica.\n"
+              "   3) Gastroenterología.\n"
+              "   4) Cirugía.\n"
+              "   5) Dermatología.\n"
+              "   6) Oftalmología.\n"
+              "   7) Traumatología.\n" 
+              "Opción:\t" );
+      scanf( "%d", &especialidadInput );
+      int ch = 0;
+      while ( ( ch = getchar() ) != '\n' && ch != EOF );
+      
+      if ( especialidadInput < 1 || especialidadInput > 7 )
+         printf( "\n[ ERROR: ELIJA UNA ESPECIALIDAD VÁLIDA. ]\n\n" );
+   } while ( especialidadInput < 1 || especialidadInput > 7 );
+   
+   // Escaneo de la lista por la especialidad pedida.
+   while ( nodoX != NULL ){
+      if ( nodoX->dato.especialidad == especialidadInput ){
+         printf( "\n#######################################\n" );
+         printf( "* SKU:               \t%d\n", nodoX->dato.sku );
+         printf( "* Descripción:       \t%s\n", nodoX->dato.descripcion );
+         printf( "* Detalles:          \t%s\n", nodoX->dato.detalles );
+         printf( "* Cantidad en stock: \t%d\n", nodoX->dato.cantidad );
+      }
+      
+      nodoX = nodoX->nextNode;
+   }
+   
+   printf( "\n#######################################\n\n" );
+}
+
+
+//------------------------------------------------------------------------
+// mostrarFecha - [ DONE ]
+//------------------------------------------------------------------------
+/* # Mostrar la fecha de la base de datos #
+ * Primeros 11 B del archivo de base de datos son para la FECHA.
+ * Tratado como STRING (última pos. = '\0').
+ * Usar ".dat".
+ */
+void mostrarFecha( char *fechaTemp ){
+   
+   if ( fechaTemp != NULL )
+      printf( "La fecha es:\t[ %s ].\n\n", fechaTemp );
+   else
+      printf( "[ ERROR: FECHA INVÁLIDA. ]\n\n" );
+}
+
