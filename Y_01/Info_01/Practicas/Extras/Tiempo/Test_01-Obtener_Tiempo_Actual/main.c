@@ -1,6 +1,8 @@
+/* # Comando #
+ * clear; gcc -Wall --pedantic-errors main.c -o prog.bin
+ */
 #include <stdio.h>
 #include <time.h>
-
 
 int main(){
    // Obtiene el tiempo actual en segundos desde EPOCH (01/01/1970).
@@ -10,10 +12,10 @@ int main(){
    // Estructura que incluye elementos como segundos, minutos, horas, día del mes, mes, año, etc.
    struct tm *fechaTemp = NULL;
 
+   // #############################################################################################
+   
    // Ajuste de UTC - 3 (CABA, Argentina).
    tiempoTemp -= (3 * 3600);
-   
-   // #############################################################################################
    
    fechaTemp = localtime( &tiempoTemp );
    

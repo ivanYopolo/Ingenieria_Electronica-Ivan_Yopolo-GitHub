@@ -34,36 +34,38 @@
 #include "includes.h"
 
 int main(){
-   int menuSelect = 0;
-   int ordenamiento = ORD_ESP;
-   // char *fechaTemp = NULL;  
-   time_t tiempoTemp = time( NULL );  
-   struct tm *fechaTemp = NULL;
+   int         menuSelect = 0;            // Selección del menú.
+   
    // Ver fecha actual por "time.h".
    // Formato: DD/MM/YYYY.
+   int         ordenamiento = ORD_ESP;    // Tipo de ordenamiento a realizar.
+   time_t      tiempoTemp = time( NULL ); // Segundos desde "Epoch".
+   struct tm   *fechaTemp = NULL;         // Estructura de tiempo actual.
+   char        *fechaTempStr = NULL;      // String de fecha del tiempo actual.
    
    /*
    Nodo_t *startNode = malloc( sizeof(Nodo_t) );
    startNode->nextNode = NULL;
    startNode->prevNode = NULL;
    */
+
    printf( "#######################################################################\n"
            "Bienvenida/o al inventario de equipamiento médico.\n"
            "Por favor, seleccione una opción para continuar.\n"
            "#######################################################################\n" );
 
-   /*
    do{
       menuSelect = menu();
       
       if ( menuSelect > 1 ){
          // Crea un nuevo nodo, lo carga con datos y lo agrega a la lista.
+         // Ver opción de inserción ordenada.
          Nodo_t *newNode = getUserInput( &startNode );
       }
 
       switch ( menuSelect ){
          case 1:
-            fechaTemp = cargarDatos( startNode );
+            fechaTempStr = cargarDatos( startNode );
          break;
          
          case 2:
@@ -71,7 +73,7 @@ int main(){
          break;
          
          case 3:
-            guardarDatos( startNode );
+            guardarDatos( startNode, fechaTempStr );
          break;
          
          case 4:
@@ -85,25 +87,13 @@ int main(){
          break;
          
          case 6:
-            mostrarFecha( fechaTemp );
+            fechaTempStr = mostrarFecha( fechaTempStr );
          break;
       }
       
    }while ( menuSelect > 1 ); // Sale del programa.
-   */
    
-   tiempoTemp -= (3 * 3600.00);
-   
-   fechaTemp = localtime( &tiempoTemp );
-   
-   
-   // fechaTemp->tm_gmtoff -= (3 * 3600.00);
-   
-   printf(  "\n[ La fecha es:\t%02d/%02d/%d ]\n"
-            "[ El tiempo es:\t%02d:%02d:%02d ]\n", 
-            fechaTemp->tm_mday, fechaTemp->tm_mon + 1, fechaTemp->tm_year + 1900,
-            fechaTemp->tm_hour, fechaTemp->tm_min, fechaTemp->tm_sec );
-   
+  
    // # Cierre de archivos y liberación de memoria #
    
    return 0;

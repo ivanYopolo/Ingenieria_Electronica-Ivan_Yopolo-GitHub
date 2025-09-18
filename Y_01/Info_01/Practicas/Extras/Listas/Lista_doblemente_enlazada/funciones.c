@@ -31,6 +31,12 @@
 
 #include "includes.h"
 
+TODO: A
+TODO: mesi mesi maradroga
+
+// ########################################################
+// ### Menú ###
+// ########################################################
 
 //------------------------------------------------------------------------
 // menu - [ DONE ]
@@ -57,6 +63,10 @@ int menu(){
    return menuSelect;
 }
 
+
+// ########################################################
+// ### Manejo de nodos ###
+// ########################################################
 
 //------------------------------------------------------------------------
 // getUserInput - [ DONE ]
@@ -284,6 +294,10 @@ Nodo_t * createNode( Dato_t *datoX ){
 }
 
 
+// ########################################################
+// ### Especiales ###
+// ########################################################
+
 //--------------------------------------------------------------------------
 // writeStrD - [ DONE ]
 //--------------------------------------------------------------------------
@@ -317,6 +331,18 @@ char * writeStrD(){
    return strO;
 }
 
+
+//--------------------------------------------------------------------------
+// correctDate
+//--------------------------------------------------------------------------
+void correctDate( char *fecha ){
+
+}
+
+
+// ########################################################
+// ### Opciones Menú ###
+// ########################################################
 
 //------------------------------------------------------------------------
 // cargarDatos
@@ -448,7 +474,7 @@ void modificarDatos( Nodo_t *startNode ){
 /* Guarda la lista entera en un archivo de base de datos.
  * Usar '.dat'.
  */
-void guardarDatos( Nodo_t *startNode ){
+void guardarDatos( Nodo_t *startNode, char *fechaAct ){ 
    int fdDat = 1;
    char *nombreTemp;
    char *nombreArchivo;
@@ -507,7 +533,7 @@ void guardarDatos( Nodo_t *startNode ){
 
 
 //------------------------------------------------------------------------
-// ordenarDatos
+// ordenarDatos - [ DONE ]
 //------------------------------------------------------------------------
 /* Ordenar los elementos por:
     * Especialidad.
@@ -515,7 +541,7 @@ void guardarDatos( Nodo_t *startNode ){
     * Disponibilidades.
  */
 int ordenarDatos( const Nodo_t *startNode, int ordenamiento[] ){
-   int nuevoOrdenamiento = 0;
+   int datoDeOrdenamiento = 0;
    int sentidoOrdenamiento = 0;
    
    // Tipo de dato a ordenar.
@@ -526,15 +552,15 @@ int ordenarDatos( const Nodo_t *startNode, int ordenamiento[] ){
       "2) Precio.\n" 
       "3) Disponibilidad (stock).\n" );
       
-      scanf( "%d", &ordenamiento );
+      scanf( "%d", &datoDeOrdenamiento );
       int ch = 0;
       while ( ( ch = getchar() ) != '\n' && ch != EOF );
       
-      if ( ordenamiento > 3 && ordenamiento < 1 )
+      if ( datoDeOrdenamiento > 3 && datoDeOrdenamiento < 1 )
          printf( "\n[ ERROR: INGRESE UNA OPCIÓN VÁLIDA. ]\n" );
-   } while ( ordenamiento > 3 && ordenamiento < 1 );
+   } while ( datoDeOrdenamiento > 3 && datoDeOrdenamiento < 1 );
    
-   nuevoOrdenamiento = ordenamiento[ 0 ];
+   ordenamiento[ 0 ] = datoDeOrdenamiento;
    
    // Sentido de ordenamiento.
    do{
@@ -551,7 +577,7 @@ int ordenarDatos( const Nodo_t *startNode, int ordenamiento[] ){
          printf( "\n[ ERROR: INGRESE UNA OPCIÓN VÁLIDA. ]\n" );
    } while ( sentidoOrdenamiento > 2 && sentidoOrdenamiento < 1 );
    
-   sentidoOrdenamiento = ordenamiento[ 1 ];
+   ordenamiento[ 1 ] = sentidoOrdenamiento;
    
    /* Ordenamiento: array de ints (2 pos):
     * 0: Dato a ordenar.
@@ -562,37 +588,6 @@ int ordenarDatos( const Nodo_t *startNode, int ordenamiento[] ){
    sortList( startNode, ordenamiento );
 
    return nuevoOrdenamiento;
-}
-
-
-//------------------------------------------------------------------------
-// sortList
-//------------------------------------------------------------------------
-void sortList( const Nodo_t *startNode, const int ordenamiento[] ) {
-   Node_t *nodoX = NULL;
-   // Puntero a función con array de funciones.
-   // Cada una ordena según las 3 opciones.
-   int (* ordenamientoLista[ 2 ][ 3 ])( Nodo_t *backNode, Nodo_t *frontNode ) = 
-      { ordenEspecialidadASC, ordenPrecioASC, ordenDisponibilidadASC }, // Ascendente.
-      { ordenEspecialidadDES, ordenPrecioDES, ordenDisponibilidadDES }; // Descendente.
-   
-   /* Ordenamiento: array de ints (2 pos):
-    * 0: Dato a ordenar.
-    * 1: Sentido de ordenamiento.
-    */
-   
-   // Ordenamiento de la lista (bubblesort).
-   nodoX = startNode;
-   for ( int pasada = 0; nodoX != NULL; pasada++ ) {
-   
-      for ( int elemento = 0; elemento < pasada - 1; elemento++ ) {
-      
-         if ( (*ordenamientoLista)[ ordenamiento[ 1 ] ][ ordenamiento[ 0 ] ]( nodoX, nodoX->nextNode ) )
-            swapNodes( nodoX, nodoX->nextNode );
-         
-         nodoX = nodoX->nextNode;
-      }
-   }
 }
 
 
@@ -641,18 +636,299 @@ void mostrarDatos( Nodo_t *startNode ){
 
 
 //------------------------------------------------------------------------
-// mostrarFecha - [ DONE ]
+// mostrarFecha - [ REV ]
 //------------------------------------------------------------------------
 /* # Mostrar la fecha de la base de datos #
  * Primeros 11 B del archivo de base de datos son para la FECHA.
  * Tratado como STRING (última pos. = '\0').
  * Usar ".dat".
  */
-void mostrarFecha( char *fechaTemp ){
+char * mostrarFecha( char *fechaTemp ){
+   time_t    tiempoNuevo;
+   struct tm *fechaNueva = NULL;
+   char      *fechaNuevaStr = NULL;
    
-   if ( fechaTemp != NULL )
+   
+   if ( fechaTemp != NULL ){  
+      // Fecha ya creada.
       printf( "La fecha es:\t[ %s ].\n\n", fechaTemp );
-   else
-      printf( "[ ERROR: FECHA INVÁLIDA. ]\n\n" );
+      fechaNuevaStr = fechaTemp;
+   }else{   
+      // Fecha nueva.
+      tiempoNuevo = time( NULL );
+      tiempoNuevo -= 3 * 3600;      // Ajuste UTC - 3.
+      
+      fechaNueva = localtime( &tiempoNuevo );
+      fechaNueva->tm_mon++;         // Mes empieza en 0.
+      fechaNueva->tm_year += 1900;  // Año empieza con 0 en 1900.
+      
+      fechaNuevaStr = malloc( TAM_DATE * sizeof(char) );
+      
+      sprintf( fechaNuevaStr, "%02d/%02d/%d",
+               fechaNueva->tm_mday, fechaNueva->tm_mon, fechaNueva->tm_year );
+      
+      printf( "La nueva fecha es:\t[ %s ].\n\n", fechaNuevaStr );
+   }
+   
+   
+   return fechaNuevaStr;
 }
+
+
+// ########################################################################
+// ### Ordenamiento ###
+// ########################################################################
+
+//------------------------------------------------------------------------
+// sortList - [ REV ]
+//------------------------------------------------------------------------
+void sortList( const Nodo_t *startNode, const int ordenamiento[] ) {
+   Node_t *nodoX = NULL;
+   // Puntero a función con array de funciones.
+   // Cada una ordena según las 3 opciones.
+   int (*ordenamientoLista[ 3 ])( Nodo_t *backNode, Nodo_t *frontNode, int orden ) = 
+      { ordenEspecialidad, ordenPrecio, ordenDisponibilidad };
+   
+   /* Ordenamiento: array de ints (2 pos):
+    * 0: Dato a ordenar.
+    * 1: Sentido de ordenamiento.
+    */
+   
+   // ### Ordenamiento de la lista (bubblesort) ###
+   
+   // Verifica si la lista está ordenada o no.
+   // Pasada externa para la lista entera.
+   while ( !isListOrdered( startNode, (*ordenamientoLista)[ ordenamiento[ 0 ] ]( nodoX, nodoX->nextNode, ordenamiento[ 1 ] ) ) ) {   
+      
+      nodoX = startNode;
+      
+      // Pasada interna por nodo.
+      while ( nodoX != NULL ) {
+         
+         // Compara según el dato a ordenar entre el nodo actual y el siguiente.
+         if ( (*ordenamientoLista)[ ordenamiento[ 0 ] ]( nodoX, nodoX->nextNode, ordenamiento[ 1 ] ) ) {
+         
+            // Los Intercambia si es que cumple los criterios pedidos.
+            swapNodes( &nodoX, &(nodoX->nextNode) );
+         }
+         
+         nodoX = nodoX->nextNode;   // Pasa al siguiente nodo.
+      }
+   }
+}
+
+
+//------------------------------------------------------------------------
+// isListOrdered - [ REV ]
+//------------------------------------------------------------------------
+/* Verifica si la lista está ordenada.
+ * Devuelve:
+   - 0 si NO está ordenada.
+   - 1 si está ordenada.
+ */
+int isListOrdered( const Nodo_t *startNode, int (*ordenamiento)( Nodo_t *backNode, Nodo_t *frontNode, int orden ) ) {
+   Node_t *nodoX = startNode;   // Temporal como cursor, para recorrer lista.
+   int ordenada = 1;
+   
+   while ( nodoX != NULL && ordenada != 0 ) {
+      // Según el método de ordenamiento y sentido orden elegido, evalúa su estado de orden.
+      if ( !(*ordenamiento)( nodoX, nodoX->nextNode, orden ) ) {
+         ordenada = 0;
+      }
+
+      nodoX = nodoX->nextNode;
+   }  // Sale si llega al final o si no está ordenada la lista.
+   
+   return ordenada;  // Ordenados naturalmente a menos que lo indique la función.
+}
+
+
+//------------------------------------------------------------------------
+// ordenEspecialidad - [ DONE ]
+//------------------------------------------------------------------------
+/* Evalúa si ambos nodos están ordenados según:
+ * ESPECIALIDAD.
+ *
+ * Retorna:
+   - 0 si NO están ordenados.
+   - 1 si están ordenados.
+ */
+int ordenEspecialidad( Nodo_t *backNode, Nodo_t *frontNode, int orden ) {
+   int ordenados = 0;
+   
+   if ( frontNode != NULL && backNode != NULL ) {
+      // Indica el SENTIDO del orden (ascendente o descendente).
+      switch ( orden ) {
+         case ORD_ASC:
+            if ( backNode->dato.especialidad <= frontNode->dato.especialidad )
+               ordenados = 1;
+            else
+               ordenados = 0;
+         break;
+         
+         case ORD_DES:
+            if ( backNode->dato.especialidad >= frontNode->dato.especialidad )
+               ordenados = 1;
+            else
+               ordenados = 0;
+         break;
+      }
+   } else {
+      ordenados = 1;
+   }
+   
+   return ordenados;
+}
+
+
+//------------------------------------------------------------------------
+// ordenPrecio - [ DONE ]
+//------------------------------------------------------------------------
+/* Evalúa si ambos nodos están ordenados según:
+ * PRECIO.
+ *
+ * Retorna:
+   - 0 si NO están ordenados.
+   - 1 si están ordenados.
+ */
+int ordenPrecio( Nodo_t *backNode, Nodo_t *frontNode, int orden ) {
+   int ordenados = 0;
+   
+   if ( frontNode != NULL && backNode != NULL ) {
+      // Indica el SENTIDO del orden (ascendente o descendente).
+      switch ( orden ) {
+         case ORD_ASC:
+            if ( backNode->dato.precio <= frontNode->dato.precio )
+               ordenados = 1;
+            else
+               ordenados = 0;
+         break;
+         
+         case ORD_DES:
+            if ( backNode->dato.precio >= frontNode->dato.precio )
+               ordenados = 1;
+            else
+               ordenados = 0;
+         break;
+      }
+   } else {
+      ordenados = 1;
+   }
+   
+   return ordenados;
+}
+
+
+//------------------------------------------------------------------------
+// ordenDisponibilidad - [ DONE ]
+//------------------------------------------------------------------------
+/* Evalúa si ambos nodos están ordenados según:
+ * DISPONIBILIDAD (stock).
+ *
+ * Retorna:
+   - 0 si NO están ordenados.
+   - 1 si están ordenados.
+ */
+int ordenDisponibilidad( Nodo_t *backNode, Nodo_t *frontNode, int orden ) {
+   int ordenados = 0;
+   
+   if ( frontNode != NULL && backNode != NULL ) {
+      // Indica el SENTIDO del orden (ascendente o descendente).
+      switch ( orden ) {
+         case ORD_ASC:
+            if ( backNode->dato.cantidad <= frontNode->dato.cantidad )
+               ordenados = 1;
+            else
+               ordenados = 0;
+         break;
+         
+         case ORD_DES:
+            if ( backNode->dato.cantidad >= frontNode->dato.cantidad )
+               ordenados = 1;
+            else
+               ordenados = 0;
+         break;
+      }
+   } else {
+      ordenados = 1;
+   }
+   
+   return ordenados;
+}
+
+
+//------------------------------------------------------------------------
+// swapNodes - [ REV ]
+//------------------------------------------------------------------------
+/* Cambia los nodos de lugar.
+ *
+ * Nomenclatura:  
+   - anterior  = n-1.
+   - backNode  = n.
+   - frontNode = n+1.
+   - siguiente = n+2.
+ *
+ * Checkear casos de:
+   - Nodo inicial.
+   - Nodo del diome.
+   - Nodo final.
+ */
+void swapNodes( Nodo_t **backNode, Nodo_t **frontNode ) {
+   Nodo_t *anterior = NULL;      // "n-1".
+   Nodo_t *siguiente = NULL;     // "n+2".
+
+   // Caso nodo del diome:
+   if ( (*backNode)->prevNode != NULL && (*frontNode)->nextNode != NULL ) {
+      anterior = (*backNode)->prevNode;                  // "n-1".
+      
+      siguiente = (*frontNode)->nextNode;                // "n+2".
+      
+      (*backNode)->nextNode = siguiente;                 // Next de "n" apunta a "n+2".
+      
+      (*frontNode)->prevNode = anterior;                 // Prev de "n+1" apunta a "n-1".
+      
+      (*backNode)->prevNode = (*frontNode);              // Prev de "n" apunta a "n+1".
+      
+      (*frontNode)->nextNode = (*backNode);              // Next de "n+1" apunta a "n".
+      
+      anterior->nextNode = (*frontNode);                 // Next de "n-1" apunta a "n+1".
+      
+      siguiente->prevNode = (*backNode);                 // Prev de "n+2" apunta a "n".
+   }
+   
+   // Caso nodo inicial:
+   if ( (*backNode)->prevNode == NULL && (*frontNode)->nextNode != NULL ) {
+      anterior = NULL;                                   // "n-1" = NULL.
+      
+      siguiente = (*frontNode)->nextNode;                // "n+2".
+      
+      (*backNode)->nextNode = siguiente;                 // Next de "n" apunta a "n+2".
+      
+      (*frontNode)->prevNode = anterior;                 // Prev de "n+1" apunta a NULL.
+      
+      (*backNode)->prevNode = (*frontNode);              // Prev de "n" apunta a "n+1".
+      
+      (*frontNode)->nextNode = (*backNode);              // Next de "n+1" apunta a "n".
+      
+      siguiente->prevNode = (*backNode);                 // Prev de "n+2" apunta a "n".
+   }
+   
+   // Caso nodo final:
+   if ( (*backNode)->prevNode != NULL && (*frontNode)->nextNode == NULL ) {
+      anterior = (*backNode)->prevNode;                  // "n-1".
+      
+      siguiente = NULL;                                  // "n+2" = NULL.
+      
+      (*backNode)->nextNode = siguiente;                 // Next de "n" apunta a NULL.
+      
+      (*frontNode)->prevNode = anterior;                 // Prev de "n+1" apunta a "n-1".
+      
+      (*backNode)->prevNode = (*frontNode);              // Prev de "n" apunta a "n+1".
+      
+      (*frontNode)->nextNode = (*backNode);              // Next de "n+1" apunta a "n".
+      
+      anterior->nextNode = (*frontNode);                 // Next de "n-1" apunta a "n+1".
+   }
+}
+
 

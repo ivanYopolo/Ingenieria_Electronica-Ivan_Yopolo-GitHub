@@ -23,6 +23,9 @@
    #define ORD_ESP            1
    #define ORD_PRE            2
    #define ORD_DISP           3
+   
+   #define ORD_ASC            1
+   #define ORD_DES            2
 
    #define CARDIOLOGIA        1
    #define CLINICA            2
@@ -33,14 +36,14 @@
    #define TRAUMATOLOGIA      7
 
    // ########################################################
-   // DATO
+   // Dato_t
    // ########################################################
    typedef struct equipamiento{
-      int sku; // Identificador de modelo (puede repetirse).
-      char descripcion[ TAM_DESC ];
-      char detalles[ TAM_DET ];
-      int cantidad;
-      int especialidad;
+      int   sku;                       // Identificador de modelo (puede repetirse).
+      char  descripcion[ TAM_DESC ];
+      char  detalles[ TAM_DET ];
+      int   cantidad;                  // Disponibilidad / Stock.
+      int   especialidad;
       float precio;
    } Dato_t;
    /* Cada NODO de la lista va a ser un SKU de equipamiento.
@@ -48,7 +51,7 @@
     */
    
    // ########################################################
-   // NODO
+   // Nodo_t
    // ########################################################
    typedef struct Nodo_s{
       Dato_t *prevNode;
@@ -59,31 +62,37 @@
    // ########################################################
    // Funciones
    // ########################################################
-   int      menu();                                         // [ DONE ]
    
-   Nodo_t * getUserInput( Nodo_t **startNode );             // [ DONE ]
-   void     popNode( Nodo_t **nodeX );                      // [ DONE ]
-   void     pushNode( Nodo_t **startNode, Nodo_t *newNode );
-   Nodo_t * createNode( Dato_t *datoX );                    // [ DONE ]
+   // ### Menú ###
+   int      menu();                                                        // [ DONE ]
    
-   char   * writeStrD();                                    // [ DONE ]
+   // ### Manejo de nodos ###
+   Nodo_t * getUserInput( Nodo_t **startNode );                            // [ DONE ]
+   void     popNode( Nodo_t **nodeX );                                     // [ DONE ]
+   void     pushNode( Nodo_t **startNode, Nodo_t *newNode );               // Ver inserción ordenada.
+   Nodo_t * createNode( Dato_t *datoX );                                   // [ DONE ]
    
+   // ### Especiales ###
+   char   * writeStrD();                                                   // [ DONE ]
+   void     correctDate( char *fecha );
+   
+   // ### Opciones Menú ###
    void     cargarDatos();
    void     modificarDatos( Nodo_t *startNode );
-   void     guardarDatos( Nodo_t *startNode );              // [ REV ]
-   int      ordenarDatos( const Nodo_t *startNode, int ordenamiento[] );
-   void     mostrarDatos( Nodo_t *startNode );              // [ DONE ]
-   void     mostrarFecha( char *fechaTemp );                // [ DONE ]
+   void     guardarDatos( Nodo_t *startNode, char *fechaAct );             // [ REV ]
+   int      ordenarDatos( const Nodo_t *startNode, int ordenamiento[] );   // [ DONE ]
+   void     mostrarDatos( Nodo_t *startNode );                             // [ DONE ]
+   char   * mostrarFecha( char *fechaTemp );                               // [ REV ]
+   
+   // ### Ordenamiento ###
+   void     sortList( const Nodo_t *startNode, const int ordenamiento[] ); // [ REV ]
+   int      isListOrdered( const Nodo_t *startNode, int (*ordenamiento)( Nodo_t *backNode, Nodo_t *frontNode, int orden ) );  // [ REV ]
    
    // Por puntero a función:
-   int      ordenEspecialidadASC( Nodo_t *backNode, Nodo_t *frontNode );
-   int      ordenPrecioASC( Nodo_t *backNode, Nodo_t *frontNode );
-   int      ordenDisponibilidadASC( Nodo_t *backNode, Nodo_t *frontNode );
+   int      ordenEspecialidad( Nodo_t *backNode, Nodo_t *frontNode, int orden );
+   int      ordenPrecio( Nodo_t *backNode, Nodo_t *frontNode, int orden );
+   int      ordenDisponibilidad( Nodo_t *backNode, Nodo_t *frontNode, int orden );
    
-   int      ordenEspecialidadDES( Nodo_t *backNode, Nodo_t *frontNode );
-   int      ordenPrecioDES( Nodo_t *backNode, Nodo_t *frontNode );
-   int      ordenDisponibilidadDES( Nodo_t *backNode, Nodo_t *frontNode );
-   
-   void     swapNodes( Nodo_t *backNode, Nodo_t *frontNode );
+   void     swapNodes( Nodo_t *backNode, Nodo_t *frontNode );               // [ REV ]
 #endif
 
