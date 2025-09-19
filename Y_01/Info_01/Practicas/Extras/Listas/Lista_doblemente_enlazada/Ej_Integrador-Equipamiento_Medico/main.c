@@ -35,6 +35,7 @@
 
 int main(){
    int         menuSelect = 0;            // Selección del menú.
+   int         fdData = 0;
    
    // Ver fecha actual por "time.h".
    // Formato: DD/MM/YYYY.
@@ -95,6 +96,7 @@ int main(){
    
   
    // # Cierre de archivos y liberación de memoria #
+   closeSession( startNode, fechaTempStr, fdData );
    
    return 0;
 }

@@ -31,8 +31,10 @@
 
 #include "includes.h"
 
-TODO: A
-TODO: mesi mesi maradroga
+TODO: Corregir el ordenamiento.
+TODO: Hacer inserción ordenada.
+TODO: Ver obtención de fecha y si está el huso horario correcto.
+TODO: Ver cargado y guardado de datos en archivos.
 
 // ########################################################
 // ### Menú ###
@@ -254,7 +256,7 @@ void popNode( Nodo_t **nodeX ){
 
 
 //------------------------------------------------------------------------
-// pushNode
+// pushNode - [ REV ]
 //------------------------------------------------------------------------
 /* Agrega un nodo a la lista (FIFO).
  * Ver manera de hacer INSERCIÓN ORDENADA.
@@ -303,7 +305,7 @@ Nodo_t * createNode( Dato_t *datoX ){
 //--------------------------------------------------------------------------
 // Agarra un string del Kernel y lo guarda en un string.
 // ### DINÁMICO ###
-char * writeStrD(){
+char * writeStrD() {
    char strI[ TAM_STR ];
 
    // No poner strlen() porque toma el salto de línea.
@@ -333,10 +335,68 @@ char * writeStrD(){
 
 
 //--------------------------------------------------------------------------
-// correctDate
+// closeSession - [ DONE ]
 //--------------------------------------------------------------------------
-void correctDate( char *fecha ){
+/* Libera memoria de la lista entera y cierra el archivo.
+ */
+void closeSession( Nodo_t *startNode, char *fechaStr, int fdData ) {
+   Nodo_t *nodoX = startNode;
+   Nodo_t *nodoAux = NULL;
+   
+   while ( nodoX != NULL ) {
+      nodoAux = nodoX;
+      nodoX = nodoX->nextNode;
+      free( nodoAux );
+   }
+   
+   free( fechaStr );
+   
+   close( fdData );
+}
 
+
+//--------------------------------------------------------------------------
+// isSKURepeated
+//--------------------------------------------------------------------------
+/* Checkea si se repite el SKU de un dato nuevo en toda la lista.
+ *
+ * Retorna:
+   - NULL si no se repite.
+   - La dirección del nodo correspondiente si es que se repite.
+ */
+Nodo_t * isSKURepeated( Nodo_t *startNode, Dato_t datoInput ) {
+   Nodo_t *nodoX = startNode;
+   
+   
+   
+   return nodoX;
+}
+
+
+//--------------------------------------------------------------------------
+// obtenerFecha - [ DONE ]
+//--------------------------------------------------------------------------
+/* Obtiene la fecha actual del sistema y lo devuelve como un string.
+ * Formato: DD/MM/YYYY.
+ */
+char * obtenerFecha(){
+   time_t    tiempoNuevo;
+   struct tm *fechaNueva = NULL;
+
+   // Fecha nueva.
+   tiempoNuevo = time( NULL );
+   // tiempoNuevo -= 3 * 3600;      // Ajuste UTC - 3.
+   
+   fechaNueva = localtime( &tiempoNuevo );
+   fechaNueva->tm_mon++;         // Mes empieza en 0.
+   fechaNueva->tm_year += 1900;  // Año empieza con 0 relativo en 1900.
+   
+   fechaNuevaStr = malloc( TAM_DATE * sizeof(char) );
+   
+   sprintf( fechaNuevaStr, "%02d/%02d/%d",
+            fechaNueva->tm_mday, fechaNueva->tm_mon, fechaNueva->tm_year );
+   
+   return fechaNuevaStr;
 }
 
 
@@ -351,35 +411,60 @@ void correctDate( char *fecha ){
  * NO SOBREESCRIBE LISTA, sinó que agrega nodos a la misma.
  * Si se repiten SKUs, se juntan en un NODO los datos y se suman su "stock".
  * Usar ".dat".
- * Devuelve la fecha leída.
+ *
+ * Devuelve la fecha leída (DD/MM/YYYY).
  */
-char * cargarDatos( Nodo_t *startNode ){
-   int fdDat = 2;
-   int bytesRd = 0;
-   char *fechaTemp = malloc( TAM_DATE * sizeof(char) );
+char * cargarDatos( Nodo_t *startNode ) {
+   int      fdData = 2;
+   int      bytesRd = 0;
+   char    *fechaTemp = malloc( TAM_DATE * sizeof(char) );
+   Dato_t   datoInput;
+   Nodo_t  *nodoX = NULL;
    
-   do{
+   // ### Abre el archivo a extraer datos ###
+   do {
       printf( "Ingrese el nombre del archivo a cargar información.\n"
               "Utilizar solamente archivos con extensión \'.dat\':\n" );
       
       char *nombreArchivo = writeStrD();
       
-      fdDat = open( nombreArchivo, O_RDONLY );
+      fdData = open( nombreArchivo, O_RDONLY );
       
-      if ( fdDat < 1 ){
+      if ( fdData < 1 ){
          printf( "\n[ ERROR: NOMBRE DE ARCHIVO INVÁLIDO. ]\n\n" );
          free( nombreArchivo );
       }
-   }while ( fdDat < 1 );
+   } while ( fdData < 1 );
    
+   // ### Carga datos a la lista ###
    
-   // Carga datos a la lista.
-   Nodo_t nodoLectura;
-   bytesRd = read( fdDat, fechaTemp, TAM_DATE );
+   bytesRd = read( fdData, fechaTemp, TAM_DATE );   // Lee la fecha.
    
+   if ( bytesRd == TAM_DATE && fechaTemp != NULL ) {
    
-   // Checkea los SKUs.
-   
+      bytesRd = read( fdData, &datoInput, sizeof(Dato_t) );  // Lee 1 dato.
+
+      while ( bytesRd == sizeof(Dato_t) ) {  // Pasa por la lista entera.
+      
+         // Checkea los SKUs.
+         if ( ( nodoX = isSKURepeated( startNode, datoInput ) ) != NULL ) { 
+            // Junta datos del mismo SKU, aumenta stock.
+            mergeData( nodoX, datoInput );
+         } else {                            
+            // Agrega un dato a la lista.
+            nodoX = createNode( &datoInput );
+            pushNode( nodoX );
+         }
+         
+         bytesRd = read( fdData, &datoInput, sizeof(Dato_t) );  // Lee 1 dato.
+      }  // Terminó de leer el archivo.
+
+      printf( "\n[ Lectura exitosa. ]\n\n" );
+      close( fdData );
+   } else {    // N° de Bytes leídos menor a la fecha.
+      printf( "\n[ ARCHIVO VACÍO. ]\n\n" );
+      close( fdData );
+   }
    
    return fechaTemp;
 }
@@ -388,14 +473,14 @@ char * cargarDatos( Nodo_t *startNode ){
 //------------------------------------------------------------------------
 // modificarDatos (ABM)
 //------------------------------------------------------------------------
-/* Agrega (alta), saca (baja) o modifica nodos de la lista (datos).
+/* Agrega (alta), saca (baja) o modifica datos de la lista.
  */
 void modificarDatos( Nodo_t *startNode ){
-   int seleccion = 1;
-   int skuTemp = 1;
-   char descripcionTemp[ TAM_DESCR ];
-   char detallesTemp[ TAM_DET ];
-   Nodo_t *nodoX = NULL;
+   int      seleccion = 1;
+   int      skuTemp = 1;
+   char     descripcionTemp[ TAM_DESCR ];
+   char     detallesTemp[ TAM_DET ];
+   Nodo_t  *nodoX = NULL;
    
    /* # Especialidades #
     1) Cardiología.
@@ -417,7 +502,7 @@ void modificarDatos( Nodo_t *startNode ){
       
       if ( skuTemp < 1 )
          printf( "\n[ SKU INVÁLIDO. INGRESE NUEVAMENTE EL DATO. ]\n\n" );
-   } while ( skuTemp < 1 );
+   } while ( skuTemp < 1 );   // Registró un SKU válido.
 
    do{
       printf( "Elija el dato a modificar:\n"
@@ -435,7 +520,7 @@ void modificarDatos( Nodo_t *startNode ){
          printf( "\n[ SELECCIÓN INVÁLIDA. ]\n\n" );
    } while ( seleccion < 1 || seleccion > 5 );
    
-   switch ( seleccion ){
+   switch ( seleccion ) {
       case 1:  // SKU.
          do{
             printf( "Ingrese el nuevo SKU:\t" );
@@ -475,11 +560,11 @@ void modificarDatos( Nodo_t *startNode ){
  * Usar '.dat'.
  */
 void guardarDatos( Nodo_t *startNode, char *fechaAct ){ 
-   int fdDat = 1;
-   char *nombreTemp;
-   char *nombreArchivo;
-   int sobreescribir = 0;
-   Nodo_t *temp = startNode;
+   int      fdData = 1;
+   char    *nombreTemp;
+   char    *nombreArchivo;
+   int      sobreescribir = 0;
+   Nodo_t  *nodoX = startNode;
    
    // Verificar nombre del archivo por input del usuario.
    do{
@@ -512,7 +597,7 @@ void guardarDatos( Nodo_t *startNode, char *fechaAct ){
          
          switch ( sobreescribir ){
             case 1:  // Sobreescritura.
-               fdDat = open( nombreArchivo, O_WRONLY | O_CREAT | O_TRUNC, 0666 );
+               fdData = open( nombreArchivo, O_WRONLY | O_CREAT | O_TRUNC, 0666 );
             break;
          
             case 2:  // Vuelve a elegir el nombre del archivo.
@@ -521,13 +606,17 @@ void guardarDatos( Nodo_t *startNode, char *fechaAct ){
          }
    } while ( nombreArchivo == NULL ); // Nombró correctamente el archivo.
    
-   // Obtiene la fecha actual en formato "DD/MM/YYYY".
-   write( fdDat, fechaAct, TAM_DATE );
+   // Escribe la fecha actual en formato "DD/MM/YYYY".
+   if ( fechaAct == NULL ) {
+      fechaAct = obtenerFecha();
+   }
    
-   // Guarda los DATOS en un archivo.
-   while ( temp != NULL ){
-      write( fdDat, temp->dato, sizeof(Dato_t) );
-      temp = temp->nextNode; 
+   write( fdData, fechaAct, TAM_DATE );
+   
+   // Guarda TODOS los DATOS en un archivo.
+   while ( nodoX != NULL ){
+      write( fdData, nodoX->dato, sizeof(Dato_t) );
+      nodoX = nodoX->nextNode; 
    }  // Terminó de guardar los datos.
 }
 
@@ -636,40 +725,25 @@ void mostrarDatos( Nodo_t *startNode ){
 
 
 //------------------------------------------------------------------------
-// mostrarFecha - [ REV ]
+// mostrarFecha - [ DONE ]
 //------------------------------------------------------------------------
 /* # Mostrar la fecha de la base de datos #
  * Primeros 11 B del archivo de base de datos son para la FECHA.
  * Tratado como STRING (última pos. = '\0').
  * Usar ".dat".
  */
-char * mostrarFecha( char *fechaTemp ){
-   time_t    tiempoNuevo;
-   struct tm *fechaNueva = NULL;
-   char      *fechaNuevaStr = NULL;
+char * mostrarFecha( char *fechaTemp ) {
+   char *fechaNuevaStr = NULL;
    
-   
-   if ( fechaTemp != NULL ){  
+   if ( fechaTemp != NULL ) { 
       // Fecha ya creada.
       printf( "La fecha es:\t[ %s ].\n\n", fechaTemp );
       fechaNuevaStr = fechaTemp;
-   }else{   
-      // Fecha nueva.
-      tiempoNuevo = time( NULL );
-      tiempoNuevo -= 3 * 3600;      // Ajuste UTC - 3.
-      
-      fechaNueva = localtime( &tiempoNuevo );
-      fechaNueva->tm_mon++;         // Mes empieza en 0.
-      fechaNueva->tm_year += 1900;  // Año empieza con 0 en 1900.
-      
-      fechaNuevaStr = malloc( TAM_DATE * sizeof(char) );
-      
-      sprintf( fechaNuevaStr, "%02d/%02d/%d",
-               fechaNueva->tm_mday, fechaNueva->tm_mon, fechaNueva->tm_year );
-      
+   } else { 
+      // Obtiene fecha actual.
+      fechaNuevaStr = obtenerFecha();
       printf( "La nueva fecha es:\t[ %s ].\n\n", fechaNuevaStr );
    }
-   
    
    return fechaNuevaStr;
 }
@@ -682,7 +756,11 @@ char * mostrarFecha( char *fechaTemp ){
 //------------------------------------------------------------------------
 // sortList - [ REV ]
 //------------------------------------------------------------------------
-void sortList( const Nodo_t *startNode, const int ordenamiento[] ) {
+/* Ordena la lista entera (bubblesort).
+ * Utiliza puntero a función dependiendo del tipo de dato a ordenar y
+ * del sentido del orden.
+ */
+void sortList( Nodo_t **startNode, const int ordenamiento[] ) {
    Node_t *nodoX = NULL;
    // Puntero a función con array de funciones.
    // Cada una ordena según las 3 opciones.
@@ -698,9 +776,9 @@ void sortList( const Nodo_t *startNode, const int ordenamiento[] ) {
    
    // Verifica si la lista está ordenada o no.
    // Pasada externa para la lista entera.
-   while ( !isListOrdered( startNode, (*ordenamientoLista)[ ordenamiento[ 0 ] ]( nodoX, nodoX->nextNode, ordenamiento[ 1 ] ) ) ) {   
+   while ( !isListOrdered( *startNode, (*ordenamientoLista)[ ordenamiento[ 0 ] ]( nodoX, nodoX->nextNode, ordenamiento[ 1 ] ) ) ) {   
       
-      nodoX = startNode;
+      nodoX = *startNode;
       
       // Pasada interna por nodo.
       while ( nodoX != NULL ) {
@@ -708,13 +786,20 @@ void sortList( const Nodo_t *startNode, const int ordenamiento[] ) {
          // Compara según el dato a ordenar entre el nodo actual y el siguiente.
          if ( (*ordenamientoLista)[ ordenamiento[ 0 ] ]( nodoX, nodoX->nextNode, ordenamiento[ 1 ] ) ) {
          
-            // Los Intercambia si es que cumple los criterios pedidos.
-            swapNodes( &nodoX, &(nodoX->nextNode) );
-         }
+            if ( nodoX == *startNode ) {
+               // Para evitar perder el inicio de la lista, antes de 
+               // cambiarlos de lugar, se guarda el "nuevo inicio".
+               *startNode = nodoX->nextNode;
+            }
          
-         nodoX = nodoX->nextNode;   // Pasa al siguiente nodo.
-      }
-   }
+            // Los Intercambia si es que cumple los criterios pedidos.
+            swapNodes( nodoX, nodoX->nextNode );
+         } else { // Si no cambia de lugar los nodos.
+         
+            nodoX = nodoX->nextNode;   // Pasa al siguiente nodo.
+         }
+      }  // Terminó de pasar por toda la lista, comparando 1 nodo en particular.
+   }  // Terminó de pasar por toda la lista, con todos los nodos.
 }
 
 
@@ -873,61 +958,61 @@ int ordenDisponibilidad( Nodo_t *backNode, Nodo_t *frontNode, int orden ) {
    - Nodo del diome.
    - Nodo final.
  */
-void swapNodes( Nodo_t **backNode, Nodo_t **frontNode ) {
+void swapNodes( Nodo_t *backNode, Nodo_t *frontNode ) {
    Nodo_t *anterior = NULL;      // "n-1".
    Nodo_t *siguiente = NULL;     // "n+2".
 
    // Caso nodo del diome:
-   if ( (*backNode)->prevNode != NULL && (*frontNode)->nextNode != NULL ) {
-      anterior = (*backNode)->prevNode;                  // "n-1".
+   if ( backNode->prevNode != NULL && frontNode->nextNode != NULL ) {
+      anterior = backNode->prevNode;               // "n-1".
       
-      siguiente = (*frontNode)->nextNode;                // "n+2".
+      siguiente = frontNode->nextNode;             // "n+2".
       
-      (*backNode)->nextNode = siguiente;                 // Next de "n" apunta a "n+2".
+      backNode->nextNode = siguiente;              // Next de "n" apunta a "n+2".
       
-      (*frontNode)->prevNode = anterior;                 // Prev de "n+1" apunta a "n-1".
+      frontNode->prevNode = anterior;              // Prev de "n+1" apunta a "n-1".
       
-      (*backNode)->prevNode = (*frontNode);              // Prev de "n" apunta a "n+1".
+      backNode->prevNode = frontNode;              // Prev de "n" apunta a "n+1".
       
-      (*frontNode)->nextNode = (*backNode);              // Next de "n+1" apunta a "n".
+      frontNode->nextNode = backNode;              // Next de "n+1" apunta a "n".
       
-      anterior->nextNode = (*frontNode);                 // Next de "n-1" apunta a "n+1".
+      anterior->nextNode = frontNode;              // Next de "n-1" apunta a "n+1".
       
-      siguiente->prevNode = (*backNode);                 // Prev de "n+2" apunta a "n".
+      siguiente->prevNode = backNode;              // Prev de "n+2" apunta a "n".
    }
    
    // Caso nodo inicial:
-   if ( (*backNode)->prevNode == NULL && (*frontNode)->nextNode != NULL ) {
-      anterior = NULL;                                   // "n-1" = NULL.
+   if ( backNode->prevNode == NULL && frontNode->nextNode != NULL ) {
+      anterior = NULL;                             // "n-1" = NULL.
       
-      siguiente = (*frontNode)->nextNode;                // "n+2".
+      siguiente = frontNode->nextNode;             // "n+2".
       
-      (*backNode)->nextNode = siguiente;                 // Next de "n" apunta a "n+2".
+      backNode->nextNode = siguiente;              // Next de "n" apunta a "n+2".
       
-      (*frontNode)->prevNode = anterior;                 // Prev de "n+1" apunta a NULL.
+      frontNode->prevNode = anterior;              // Prev de "n+1" apunta a NULL.
       
-      (*backNode)->prevNode = (*frontNode);              // Prev de "n" apunta a "n+1".
+      backNode->prevNode = frontNode;              // Prev de "n" apunta a "n+1".
       
-      (*frontNode)->nextNode = (*backNode);              // Next de "n+1" apunta a "n".
+      frontNode->nextNode = backNode;              // Next de "n+1" apunta a "n".
       
-      siguiente->prevNode = (*backNode);                 // Prev de "n+2" apunta a "n".
+      siguiente->prevNode = backNode;              // Prev de "n+2" apunta a "n".
    }
    
    // Caso nodo final:
-   if ( (*backNode)->prevNode != NULL && (*frontNode)->nextNode == NULL ) {
-      anterior = (*backNode)->prevNode;                  // "n-1".
+   if ( backNode->prevNode != NULL && frontNode->nextNode == NULL ) {
+      anterior = backNode->prevNode;               // "n-1".
       
-      siguiente = NULL;                                  // "n+2" = NULL.
+      siguiente = NULL;                            // "n+2" = NULL.
       
-      (*backNode)->nextNode = siguiente;                 // Next de "n" apunta a NULL.
+      backNode->nextNode = siguiente;              // Next de "n" apunta a NULL.
       
-      (*frontNode)->prevNode = anterior;                 // Prev de "n+1" apunta a "n-1".
+      frontNode->prevNode = anterior;              // Prev de "n+1" apunta a "n-1".
       
-      (*backNode)->prevNode = (*frontNode);              // Prev de "n" apunta a "n+1".
+      backNode->prevNode = frontNode;              // Prev de "n" apunta a "n+1".
       
-      (*frontNode)->nextNode = (*backNode);              // Next de "n+1" apunta a "n".
+      frontNode->nextNode = backNode;              // Next de "n+1" apunta a "n".
       
-      anterior->nextNode = (*frontNode);                 // Next de "n-1" apunta a "n+1".
+      anterior->nextNode = frontNode;              // Next de "n-1" apunta a "n+1".
    }
 }
 
