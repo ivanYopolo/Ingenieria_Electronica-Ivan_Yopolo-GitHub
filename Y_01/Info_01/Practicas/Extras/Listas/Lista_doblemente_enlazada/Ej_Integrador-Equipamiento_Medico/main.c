@@ -33,7 +33,7 @@
 
 #include "includes.h"
 
-int main(){
+int main() {
    int         menuSelect = 0;            // Selección del menú.
    int         fdData = 0;
    
@@ -44,55 +44,62 @@ int main(){
    struct tm   *fechaTemp = NULL;         // Estructura de tiempo actual.
    char        *fechaTempStr = NULL;      // String de fecha del tiempo actual.
    
-   /*
-   Nodo_t *startNode = malloc( sizeof(Nodo_t) );
-   startNode->nextNode = NULL;
-   startNode->prevNode = NULL;
-   */
+   int         primerDato = 1;
+   Nodo_t      *nodoX = NULL;
+   Nodo_t      *startNode = NULL;
+   
 
    printf( "#######################################################################\n"
            "Bienvenida/o al inventario de equipamiento médico.\n"
            "Por favor, seleccione una opción para continuar.\n"
            "#######################################################################\n" );
 
-   do{
+   do {
       menuSelect = menu();
       
-      if ( menuSelect > 1 ){
-         // Crea un nuevo nodo, lo carga con datos y lo agrega a la lista.
-         // Ver opción de inserción ordenada.
-         Nodo_t *newNode = getUserInput( &startNode );
+      if ( menuSelect > 0 ) {
+         switch ( menuSelect ) {
+            case 1:  // Cargar datos desde un archivo.
+               fechaTempStr = cargarDatos( startNode );
+            break;
+            
+            case 2:  // ABM de datos.
+               if ( primerDato == 1 ){ // Caso particular: primer dato.
+                  // Nodo_t *newNode = getUserInput( &startNode );
+                  getUserInput( &startNode );
+                  primerDato = 0;
+               } else {                // Caso general.
+                  modificarDatos( startNode );
+               }
+            break;
+            
+            case 3:  // Guardar datos en un archivo.
+               guardarDatos( startNode, fechaTempStr );
+            break;
+            
+            case 4:  // Ordenar datos según criterio.
+               // Ver opción de inserción ordenada.
+               ordenamiento = ordenarDatos( startNode, ordenamiento );
+            break;
+            
+            case 5:  // Mostrar TODOS los datos.
+               nodoX = startNode;
+               
+               while ( nodoX != NULL ) {
+                  showData( nodoX->dato );
+               }
+            break;
+            
+            case 6:  // Mostar los datos por una determinada ESPECIALIDAD.
+               mostrarDatos( startNode );
+            break;
+            
+            case 7:  // Mostrar la fecha actual o del archivo.
+               fechaTempStr = mostrarFecha( fechaTempStr );
+            break;
+         }
       }
-
-      switch ( menuSelect ){
-         case 1:
-            fechaTempStr = cargarDatos( startNode );
-         break;
-         
-         case 2:
-            modificarDatos( startNode );
-         break;
-         
-         case 3:
-            guardarDatos( startNode, fechaTempStr );
-         break;
-         
-         case 4:
-            // Ver opción de inserción ordenada.
-            // Pensar en puntero a función.
-            ordenamiento = ordenarDatos( startNode, ordenamiento );
-         break;
-         
-         case 5:
-            mostrarDatos( startNode );
-         break;
-         
-         case 6:
-            fechaTempStr = mostrarFecha( fechaTempStr );
-         break;
-      }
-      
-   }while ( menuSelect > 1 ); // Sale del programa.
+   } while ( menuSelect > 0 ); // Sale del programa.
    
   
    // # Cierre de archivos y liberación de memoria #
@@ -100,3 +107,4 @@ int main(){
    
    return 0;
 }
+

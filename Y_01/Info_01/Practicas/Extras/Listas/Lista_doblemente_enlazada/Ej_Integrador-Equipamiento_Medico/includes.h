@@ -71,15 +71,18 @@
    void     popNode( Nodo_t **nodeX );                                              // [ DONE ]
    void     pushNode( Nodo_t **startNode, Nodo_t *newNode );                        // [ REV ] - Ver inserción ordenada.
    Nodo_t * createNode( Dato_t *datoX );                                            // [ DONE ]
+   void     mergeData( Nodo_t *nodoX, Dato_t datoInput, int mergeSelection );       // [ DONE ]
    
    // ### Especiales ###
    char   * writeStrD();                                                            // [ DONE ]
+   void     writeStr( char *string, int tamString );                                // [ DONE ]
+   void     showData( Dato_t datoX );                                               // [ DONE ]
    void     closeSession( Nodo_t *startNode, char *fechaStr, int fdData );          // [ DONE ]
-   Nodo_t * isSKURepeated( Nodo_t *startNode, Dato_t datoInput );                   // [ REV ]
+   Nodo_t * isSKURepeated( Nodo_t *startNode, int skuInput );                       // [ REV ]
    char   * obtenerFecha();                                                         // [ DONE ]
    
    // ### Opciones Menú ###
-   void     cargarDatos();                                                          // ---
+   void     cargarDatos();                                                          // [ REV ]
    void     modificarDatos( Nodo_t *startNode );                                    // ---
    void     guardarDatos( Nodo_t *startNode, char *fechaAct );                      // [ REV ]
    int      ordenarDatos( const Nodo_t *startNode, int ordenamiento[] );            // [ DONE ]
@@ -88,13 +91,12 @@
    
    // ### Ordenamiento ###
    void     sortList( Nodo_t **startNode, const int ordenamiento[] );               // [ REV ]
-   int      isListOrdered( const Nodo_t *startNode, int (*ordenamiento)( Nodo_t *backNode, Nodo_t *frontNode, int orden ) );  // [ REV ]
-   
+   int      isListOrdered( const Nodo_t *startNode, \
+                           int (*ordenamiento)( Nodo_t *backNode, Nodo_t *frontNode, int orden ) );      // [ REV ]
+   void     swapNodes( Nodo_t *backNode, Nodo_t *frontNode );                       // [ DONE ]
    // Por puntero a función:
    int      ordenEspecialidad( Nodo_t *backNode, Nodo_t *frontNode, int orden );    // [ DONE ]
    int      ordenPrecio( Nodo_t *backNode, Nodo_t *frontNode, int orden );          // [ DONE ]
    int      ordenDisponibilidad( Nodo_t *backNode, Nodo_t *frontNode, int orden );  // [ DONE ]
-   
-   void     swapNodes( Nodo_t *backNode, Nodo_t *frontNode );                       // [ REV ]
 #endif
 
