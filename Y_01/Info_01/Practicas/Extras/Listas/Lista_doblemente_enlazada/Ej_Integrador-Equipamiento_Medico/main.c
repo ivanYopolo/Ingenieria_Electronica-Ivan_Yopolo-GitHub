@@ -29,19 +29,20 @@
  * la fecha de la base de datos en el siguiente formato: DD/MM/YYYY.
  */
 
-// Comando: gcc -Wall --pedantic-errors main.c funciones.c -o prog.bin
-
-#include "includes.h"
+/* Comando: gcc -Wall --pedantic-errors main.c \
+            ./includes/Equipamiento_medico/funciones.c \
+            ./includes/GetString_console/getstring-lib.c \
+            ./includes/Manejo_Listas/Doble/lista_doble-lib.c -o prog.bin
+*/
+#include "./includes/Equipamiento_medico/funciones.h"
 
 int main() {
-   int         menuSelect = 0;            // Selección del menú.
-   int         fdData = 0;
+   int         menuSelect = 0;                           // Selección del menú.
+   int         fdData = 0;                               // Archivo a guardar/cargar datos.
+   int         ordenamiento[2] = { ORD_ESP, ORD_ASC };   // Tipo de ordenamiento a realizar.
    
    // Ver fecha actual por "time.h".
    // Formato: DD/MM/YYYY.
-   int         ordenamiento = ORD_ESP;    // Tipo de ordenamiento a realizar.
-   time_t      tiempoTemp = time( NULL ); // Segundos desde "Epoch".
-   struct tm   *fechaTemp = NULL;         // Estructura de tiempo actual.
    char        *fechaTempStr = NULL;      // String de fecha del tiempo actual.
    
    int         primerDato = 1;
@@ -60,7 +61,7 @@ int main() {
       if ( menuSelect > 0 ) {
          switch ( menuSelect ) {
             case 1:  // Cargar datos desde un archivo.
-               fechaTempStr = cargarDatos( startNode );
+               fechaTempStr = cargarDatos( &startNode );
             break;
             
             case 2:  // ABM de datos.
@@ -79,7 +80,7 @@ int main() {
             
             case 4:  // Ordenar datos según criterio.
                // Ver opción de inserción ordenada.
-               ordenamiento = ordenarDatos( startNode, ordenamiento );
+               ordenarDatos( &startNode, ordenamiento );
             break;
             
             case 5:  // Mostrar TODOS los datos.

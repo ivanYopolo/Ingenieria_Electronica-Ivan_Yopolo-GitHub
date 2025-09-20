@@ -111,31 +111,31 @@ char * getString(){
 //--------------------------------------------------------------------------
 // Copia datos de un struct a otro.
 void copiarStruct( Alumno_s *destino, const Alumno_s origen ){
-    // printf( "[ Copiando structs... ]\n" );
-    
-    /* ### Datos del struct inicial ###
-    printf( "\n[ Datos de origen ]\n" );
-    
-    printf( "Legajo origen:  \t\t%.3f\n", origen.legajo );
-    printf( "Nota origen:    \t\t%d\n", origen.nota );
-    printf( "Nombre origen:  \t\t%s\n", origen.nombre );
-    printf( "Apellido origen:\t\t%s\n", origen.apellido );
-    */
-    
-    destino->legajo = origen.legajo;
-    destino->nota   = origen.nota;
-    strncpy( destino->nombres,    origen.nombres,     strlen( origen.nombres ) ); 
-    strncpy( destino->apellidos,  origen.apellidos,   strlen( origen.apellidos ) );
-    
-    /* ### Datos copiados en el struct dinámico ###
-    printf( "\n[ Datos de destino ]\n" );
-    
-    printf( "Legajo:         \t\t%.3f\n", destino->legajo );
-    printf( "Nota:           \t\t%d\n", destino->nota );
-    printf( "Nombre:         \t\t%s\n",  destino->nombre );
-    printf( "Apellido:       \t\t%s\n", destino->apellido );
-    */
-    // printf( "[ Copiado exitosamente ]\n" );
+   // printf( "[ Copiando structs... ]\n" );
+
+   /* ### Datos del struct inicial ###
+   printf( "\n[ Datos de origen ]\n" );
+
+   printf( "Legajo origen:  \t\t%.3f\n", origen.legajo );
+   printf( "Nota origen:    \t\t%d\n", origen.nota );
+   printf( "Nombre origen:  \t\t%s\n", origen.nombre );
+   printf( "Apellido origen:\t\t%s\n", origen.apellido );
+   */
+
+   destino->legajo = origen.legajo;
+   destino->nota   = origen.nota;
+   strncpy( destino->nombres,    origen.nombres,     strlen( origen.nombres ) ); 
+   strncpy( destino->apellidos,  origen.apellidos,   strlen( origen.apellidos ) );
+
+   /* ### Datos copiados en el struct dinámico ###
+   printf( "\n[ Datos de destino ]\n" );
+
+   printf( "Legajo:         \t\t%.3f\n", destino->legajo );
+   printf( "Nota:           \t\t%d\n", destino->nota );
+   printf( "Nombre:         \t\t%s\n",  destino->nombre );
+   printf( "Apellido:       \t\t%s\n", destino->apellido );
+   */
+   // printf( "[ Copiado exitosamente ]\n" );
 }
 
 
@@ -145,15 +145,15 @@ void copiarStruct( Alumno_s *destino, const Alumno_s origen ){
 // Con los datos de los alumnos, crea un nuevo nodo y lo devuelve dinámicamente.
 // # Recordar de liberar memoria después #
 Nodo_s * createNode( Alumno_s *dataX ){
-    
-    Nodo_s *newNode = (Nodo_s *) calloc( 1, sizeof(Nodo_s) );
-    newNode->next = NULL;   // El siguiente es el NULO.
-    
-    // Copia structs.
-    // copiarStruct( &(newNode->data), *dataX );
-    newNode->data = *dataX;
-    
-    return newNode; // Retorna la dirección del nuevo nodo creado.
+
+   Nodo_s *newNode = (Nodo_s *) calloc( 1, sizeof(Nodo_s) );
+   newNode->next = NULL;   // El siguiente es el NULO.
+
+   // Copia structs.
+   // copiarStruct( &(newNode->data), *dataX );
+   newNode->data = *dataX;
+
+   return newNode; // Retorna la dirección del nuevo nodo creado.
 }
 
 
@@ -162,9 +162,9 @@ Nodo_s * createNode( Alumno_s *dataX ){
 // -----------------------------------------------------------------------------------
 // Agrega un nuevo nodo a la lista (FIFO).
 void pushNode( Nodo_s **startNode, Nodo_s *newNode ){
-    
-    newNode->next = *startNode;
-    *startNode = newNode;
+
+   newNode->next = *startNode;
+   *startNode = newNode;
 }
 
 
