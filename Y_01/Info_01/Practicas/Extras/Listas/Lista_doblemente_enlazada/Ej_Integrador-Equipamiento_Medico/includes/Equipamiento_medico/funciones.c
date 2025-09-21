@@ -94,21 +94,24 @@ void get_user_input( Nodo_t **startNode, int sentido, \
    float    precioTemp = 0; 
    char     especialidadStr[7][20] = 
             { "Cardiología", "Clínica", "Gastroenterología", "Cirugía", "Dermatología", "Oftalmología", "Traumatología" };
+   Dato_t   *newData = NULL;
    Nodo_t   *newNode = NULL;
-   Dato_t   *newData = malloc( sizeof(Dato_t) );
    
    // # LOG #
    int      fdLog = 0;
    fdLog = open( "get_user_input.log", O_WRONLY | O_CREAT | O_TRUNC, 0666 );
    
    do {  // Repetición de función.
+      newData = malloc( sizeof(Dato_t) );
+      newNode = NULL;
+   
       dprintf( fdLog, "### Creando dato... ###\n" );
       
       printf( "Ingrese los datos del producto en forma ordenada:\n" );
       
       // # SKU #
       do {
-         printf( "* SKU:\t" );
+         printf( "* SKU:        \t\t" );
          
          scanf( "%d", &sku );
          int ch = 0;
@@ -123,7 +126,7 @@ void get_user_input( Nodo_t **startNode, int sentido, \
       
       
       // # Descripción #
-      printf( "* Descripción:\t" );
+      printf( "* Descripción:\t\t" );
       
       while( fgets( newData->descripcion, TAM_DESC, stdin ) == NULL ){
          printf( "[ ERROR: POR FAVOR, ESCRIBA DE VUELTA. ]\n" );
@@ -142,7 +145,7 @@ void get_user_input( Nodo_t **startNode, int sentido, \
       
       
       // # Detalles #
-      printf( "* Detalles:\t\t" );
+      printf( "* Detalles:   \t\t" );
       
       while( fgets( newData->detalles, TAM_DET, stdin ) == NULL ){
          printf( "[ ERROR: POR FAVOR, ESCRIBA DE VUELTA. ]\n" );
@@ -198,7 +201,7 @@ void get_user_input( Nodo_t **startNode, int sentido, \
       
       // # PRECIO #
       do {
-         printf( "* Precio:\t" );
+         printf( "* Precio:   \t\t" );
          scanf( "%f", &precioTemp );
          int ch = 0;
          while ( ( ch = getchar() ) != '\n' && ch != EOF );
@@ -220,10 +223,9 @@ void get_user_input( Nodo_t **startNode, int sentido, \
          *startNode = create_node( newData );
          newNode = *startNode;
       } else {                            // Caso general.
-         Nodo_t *newNode = create_node( newData );
+         newNode = create_node( newData );
          // Agrega nodo a la lista (inserción ordenada).
-         ordered_insertion( &startNode, newNode, sentido, &(*criterio_orden) );
-         // push_node( startNode, newNode );
+         ordered_insertion( startNode, newNode, sentido, (*criterio_orden) );
       }
       
       // # LOG #
@@ -525,7 +527,8 @@ void close_session( Nodo_t *startNode, char *fechaStr ) {
       free( nodoAux );
    }
    
-   free( fechaStr );
+   if ( fechaStr != NULL )
+      free( fechaStr );
 }
 
 
@@ -604,7 +607,8 @@ char * obtener_fecha() {
  *
  * Devuelve la fecha leída (DD/MM/YYYY).
  */
-char * cargar_datos( Nodo_t **startNode ) {
+char * cargar_datos( Nodo_t **startNode, int sentido, \
+                     int (*criterio_orden)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) ) {
    int      fdData = 2;
    int      bytesRd = 0;
    int      mergeSelection = 0;
@@ -662,16 +666,17 @@ char * cargar_datos( Nodo_t **startNode ) {
          
             // Junta datos del mismo SKU, aumenta stock.
             merge_data( &(nodoX->dato), datoInput, mergeSelection );
+            
          } else { // No se repite el SKU.
-            // Agrega un dato a la lista.
-            nodoX = create_node( &datoInput );
-            push_node( startNode, nodoX );
+            nodoX = create_node( &datoInput );     // Agrega un dato a la lista.
+            ordered_insertion( startNode, nodoX, sentido, (*criterio_orden) );
          }
          
          bytesRd = read( fdData, &datoInput, sizeof(Dato_t) );  // Lee 1 dato.
       }  // Terminó de leer el archivo.
 
       printf( "\n[ Lectura exitosa. ]\n\n" );
+      
    } else {    // N° de Bytes leídos menor a la fecha.
       printf( "\n[ ARCHIVO VACÍO. ]\n\n" );
    }
@@ -690,13 +695,13 @@ char * cargar_datos( Nodo_t **startNode ) {
  * [0]: Dato a ordenar.
  * [1]: Sentido de ordenamiento.
  */
-void altas_bajas_modificaciones( Nodo_t **startNode, int ordenamiento[], \
-                                 int (*criterio_orden[3])( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) ) {
+void altas_bajas_modificaciones( Nodo_t **startNode, int sentido, \
+                                 int (*criterio_orden)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) ) {
    int seleccion = 1;
    
    if ( startNode == NULL ) { // Caso inicial.
       // Pasa el criterio para ordenar según diga el main().
-      get_user_input( startNode, ordenamiento[1], &(*criterio_orden[ordenamiento[0]]) );
+      get_user_input( startNode, sentido, (*criterio_orden) );
    } else { // Caso general.
       do {  // Repetición de la función.
          do {
@@ -715,7 +720,7 @@ void altas_bajas_modificaciones( Nodo_t **startNode, int ordenamiento[], \
          
          switch ( seleccion ) {
             case 1:  // Alta.
-               get_user_input( startNode );
+               get_user_input( startNode, sentido, (*criterio_orden) );
             break;
             
             case 2:  // Baja.
@@ -836,61 +841,60 @@ void guardar_datos( Nodo_t *startNode, char *fechaAct ) {
 // ordenar_datos - [ DONE ]
 //------------------------------------------------------------------------
 /* Ordenar los elementos por:
-    * Especialidad.
-    * Precio.
-    * Disponibilidades.
+   * Especialidad.
+   * Precio.
+   * Disponibilidades.
+ *
+ * Ordenamiento: array de ints (2 pos):
+   * 0: Dato a ordenar.
+   * 1: Sentido de ordenamiento.
  */
 void ordenar_datos( Nodo_t **startNode, int ordenamiento[], \
                     int (*criterio_orden[3])( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) ) {
    int datoDeOrdenamiento = 0;
    int sentidoOrdenamiento = 0;
    
-   // Tipo de dato a ordenar.
-   do{
-      printf( 
-      "\n# Seleccione con qué dato ordenar el inventario #\n" 
-      "1) Especialidad.\n" 
-      "2) Precio.\n" 
-      "3) Disponibilidad (stock).\n" );
+   if ( *startNode == NULL ) {
+      printf( "\n[ ERROR: INVENTARIO VACÍO. ]\n\n" );
+   } else {
+      // Tipo de dato a ordenar.
+      do{
+         printf( 
+         "\n# Seleccione con qué dato ordenar el inventario #\n" 
+         "1) Especialidad.\n" 
+         "2) Precio.\n" 
+         "3) Disponibilidad (stock).\n" );
+         
+         scanf( "%d", &datoDeOrdenamiento );
+         int ch = 0;
+         while ( ( ch = getchar() ) != '\n' && ch != EOF );
+         
+         if ( datoDeOrdenamiento > 3 || datoDeOrdenamiento < 1 )
+            printf( "\n[ ERROR: INGRESE UNA OPCIÓN VÁLIDA. ]\n" );
+      } while ( datoDeOrdenamiento > 3 || datoDeOrdenamiento < 1 );
       
-      scanf( "%d", &datoDeOrdenamiento );
-      int ch = 0;
-      while ( ( ch = getchar() ) != '\n' && ch != EOF );
+      ordenamiento[0] = datoDeOrdenamiento;
       
-      if ( datoDeOrdenamiento > 3 || datoDeOrdenamiento < 1 )
-         printf( "\n[ ERROR: INGRESE UNA OPCIÓN VÁLIDA. ]\n" );
-   } while ( datoDeOrdenamiento > 3 || datoDeOrdenamiento < 1 );
-   
-   ordenamiento[ 0 ] = datoDeOrdenamiento;
-   
-   // Sentido de ordenamiento.
-   do{
-      printf( 
-      "\n# Seleccione el sentido del ordenamiento #\n" 
-      "1) Ascendente.\n" 
-      "2) Descendente.\n" );
+      // Sentido de ordenamiento.
+      do{
+         printf( 
+         "\n# Seleccione el sentido del ordenamiento #\n" 
+         "1) Ascendente.\n" 
+         "2) Descendente.\n" );
+         
+         scanf( "%d", &sentidoOrdenamiento );
+         int ch = 0;
+         while ( ( ch = getchar() ) != '\n' && ch != EOF );
+         
+         if ( sentidoOrdenamiento > 2 || sentidoOrdenamiento < 1 )
+            printf( "\n[ ERROR: INGRESE UNA OPCIÓN VÁLIDA. ]\n" );
+      } while ( sentidoOrdenamiento > 2 || sentidoOrdenamiento < 1 );
       
-      scanf( "%d", &sentidoOrdenamiento );
-      int ch = 0;
-      while ( ( ch = getchar() ) != '\n' && ch != EOF );
+      ordenamiento[1] = sentidoOrdenamiento;
       
-      if ( sentidoOrdenamiento > 2 || sentidoOrdenamiento < 1 )
-         printf( "\n[ ERROR: INGRESE UNA OPCIÓN VÁLIDA. ]\n" );
-   } while ( sentidoOrdenamiento > 2 || sentidoOrdenamiento < 1 );
-   
-   ordenamiento[ 1 ] = sentidoOrdenamiento;
-   
-   /* Ordenamiento: array de ints (2 pos):
-    * 0: Dato a ordenar.
-    * 1: Sentido de ordenamiento.
-    */
-   
-   /*
-   int (*criterio_orden[ 3 ])( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) = 
-         { &orden_especialidad, &orden_precio, &orden_disponibilidad };
-   */
-   // Ordenamiento en sí mismo.
-   sort_list( startNode, ordenamiento, &(*criterio_orden) );
+      // Ordenamiento en sí mismo.
+      sort_list( startNode, ordenamiento[1], &(*criterio_orden[ordenamiento[0]]) );
+   }
 }
 
 
@@ -974,7 +978,6 @@ char * mostrar_fecha( char *fechaTemp ) {
 // ########################################################################
 // ### Ordenamiento ###
 // ########################################################################
-
 
 //------------------------------------------------------------------------
 // orden_especialidad - [ DONE ]

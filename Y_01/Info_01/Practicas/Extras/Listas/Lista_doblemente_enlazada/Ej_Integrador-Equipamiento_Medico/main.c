@@ -10,10 +10,6 @@
  *
  * Cada NODO de la lista va a ser un SKU de equipamiento.
  * Los IDs se repiten si los SKUs también se repiten.
- *
- * El campo id será asignado en forma dinámica por el programa; 
- * mientras que el resto de la información deberá ser 
- * proporcionada por el usuario.
  * 
  * # Especialidades #
  * Cardiología.
@@ -35,21 +31,26 @@
             ./includes/Manejo_Listas/Doble/lista_doble-lib.c -o prog.bin
 */
 #include "./includes/Equipamiento_medico/funciones.h"
+   
+/*
+ * # ordenamiento[2] #
+ * [0]: Dato a ordenar.
+ * [1]: Sentido de ordenamiento.
+*/
 
 int main() {
-   int         menuSelect = 0;                           // Selección del menú.
-   int         modeShow = 0;
+   int      menuSelect = 0;                           // Selección del menú.
+   int      modeShow = 0;
    
-   int         ordenamiento[2] = { ORD_ESP, ORD_ASC };   // Tipo de ordenamiento a realizar.
-   int         (*criterio_orden[ 3 ])( Nodo_t *backNode, Nodo_t *frontNode, int orden ) = 
+   int      ordenamiento[2] = { ORD_ESP, ORD_ASC };   // Tipo de ordenamiento a realizar.
+   int      (*criterio_orden[3])( Nodo_t *backNode, Nodo_t *frontNode, int orden ) = 
                { &orden_especialidad, &orden_precio, &orden_disponibilidad };    // Array de funciones para ordenamiento.
    
-   // Ver fecha actual por "time.h".
    // Formato: DD/MM/YYYY.
-   char        *fechaTempStr = NULL;      // String de fecha del tiempo actual.
+   char     *fechaTempStr = NULL;      // String de fecha del tiempo actual.
    
-   Nodo_t      *nodoX = NULL;
-   Nodo_t      *startNode = NULL;
+   // Nodo_t   *nodoX = NULL;
+   Nodo_t   *startNode = NULL;
    
 
    printf( "###########################################################################\n"
@@ -63,11 +64,11 @@ int main() {
       if ( menuSelect > 0 ) {
          switch ( menuSelect ) {
             case 1:  // Carga datos desde un archivo.
-               fechaTempStr = cargar_datos( &startNode );
+               fechaTempStr = cargar_datos( &startNode, ordenamiento[1], (*criterio_orden[ordenamiento[0]]) );
             break;
             
             case 2:  // ABM de datos.
-               altas_bajas_modificaciones( &startNode, &(*criterio_orden) );
+               altas_bajas_modificaciones( &startNode, ordenamiento[1], (*criterio_orden[ordenamiento[0]]) );
             break;
             
             case 3:  // Guarda datos en un archivo.
