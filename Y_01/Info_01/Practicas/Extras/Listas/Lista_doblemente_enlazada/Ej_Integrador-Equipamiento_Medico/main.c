@@ -29,7 +29,7 @@
  * la fecha de la base de datos en el siguiente formato: DD/MM/YYYY.
  */
 
-/* Comando: gcc -Wall --pedantic-errors main.c \
+/* Comando: clear; gcc -Wall --pedantic-errors main.c \
             ./includes/Equipamiento_medico/funciones.c \
             ./includes/GetString_console/getstring-lib.c \
             ./includes/Manejo_Listas/Doble/lista_doble-lib.c -o prog.bin
@@ -38,65 +38,58 @@
 
 int main() {
    int         menuSelect = 0;                           // Selección del menú.
-   int         fdData = 0;                               // Archivo a guardar/cargar datos.
+   int         modeShow = 0;
+   
    int         ordenamiento[2] = { ORD_ESP, ORD_ASC };   // Tipo de ordenamiento a realizar.
+   int         (*criterio_orden[ 3 ])( Nodo_t *backNode, Nodo_t *frontNode, int orden ) = 
+               { &orden_especialidad, &orden_precio, &orden_disponibilidad };    // Array de funciones para ordenamiento.
    
    // Ver fecha actual por "time.h".
    // Formato: DD/MM/YYYY.
    char        *fechaTempStr = NULL;      // String de fecha del tiempo actual.
    
-   int         primerDato = 1;
    Nodo_t      *nodoX = NULL;
    Nodo_t      *startNode = NULL;
    
 
-   printf( "#######################################################################\n"
+   printf( "###########################################################################\n"
            "Bienvenida/o al inventario de equipamiento médico.\n"
            "Por favor, seleccione una opción para continuar.\n"
-           "#######################################################################\n" );
+           "###########################################################################\n" );
 
    do {
       menuSelect = menu();
       
       if ( menuSelect > 0 ) {
          switch ( menuSelect ) {
-            case 1:  // Cargar datos desde un archivo.
-               fechaTempStr = cargarDatos( &startNode );
+            case 1:  // Carga datos desde un archivo.
+               fechaTempStr = cargar_datos( &startNode );
             break;
             
             case 2:  // ABM de datos.
-               if ( primerDato == 1 ){ // Caso particular: primer dato.
-                  // Nodo_t *newNode = getUserInput( &startNode );
-                  getUserInput( &startNode );
-                  primerDato = 0;
-               } else {                // Caso general.
-                  modificarDatos( startNode );
-               }
+               altas_bajas_modificaciones( &startNode, &(*criterio_orden) );
             break;
             
-            case 3:  // Guardar datos en un archivo.
-               guardarDatos( startNode, fechaTempStr );
+            case 3:  // Guarda datos en un archivo.
+               guardar_datos( startNode, fechaTempStr );
             break;
             
-            case 4:  // Ordenar datos según criterio.
-               // Ver opción de inserción ordenada.
-               ordenarDatos( &startNode, ordenamiento );
+            case 4:  // Ordena datos según criterio.
+               ordenar_datos( &startNode, ordenamiento, &(*criterio_orden) );
             break;
             
             case 5:  // Mostrar TODOS los datos.
-               nodoX = startNode;
-               
-               while ( nodoX != NULL ) {
-                  showData( nodoX->dato );
-               }
+               modeShow = 0;
+               mostrar_datos( startNode, modeShow );
             break;
             
-            case 6:  // Mostar los datos por una determinada ESPECIALIDAD.
-               mostrarDatos( startNode );
+            case 6:  // Muestra los datos de una determinada ESPECIALIDAD.
+               modeShow = 1;
+               mostrar_datos( startNode, modeShow );
             break;
             
-            case 7:  // Mostrar la fecha actual o del archivo.
-               fechaTempStr = mostrarFecha( fechaTempStr );
+            case 7:  // Muestra la fecha actual o del archivo.
+               fechaTempStr = mostrar_fecha( fechaTempStr );
             break;
          }
       }
@@ -104,7 +97,7 @@ int main() {
    
   
    // # Cierre de archivos y liberación de memoria #
-   closeSession( startNode, fechaTempStr, fdData );
+   close_session( startNode, fechaTempStr );
    
    return 0;
 }

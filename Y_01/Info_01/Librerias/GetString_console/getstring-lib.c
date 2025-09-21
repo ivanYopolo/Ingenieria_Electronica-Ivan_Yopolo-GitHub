@@ -7,7 +7,7 @@
 /* Agarra un string del Kernel y lo guarda en un string.
  * ### DINÁMICO ###
  */
-char * writeStrD() {
+char * write_str_d() {
    char strI[TAM_STR];
 
    // No poner strlen() porque toma el salto de línea.
@@ -42,7 +42,7 @@ char * writeStrD() {
 /* Agarra un string del Kernel y lo guarda en un string.
  * ### TAMAÑO FIJO ###
  */
-void writeStr( char *string, int tamString ) {
+void write_str( char *string, int tamString ) {
    // No poner strlen() porque toma el salto de línea.
    if( fgets( string, tamString, stdin ) == NULL );   // ERROR
    

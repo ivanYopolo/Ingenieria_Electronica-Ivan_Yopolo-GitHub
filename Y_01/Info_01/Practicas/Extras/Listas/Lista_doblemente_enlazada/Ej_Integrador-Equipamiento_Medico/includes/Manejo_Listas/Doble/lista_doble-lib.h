@@ -20,7 +20,7 @@
    // ########################################################
    // Dato_t
    // ########################################################
-   typedef struct equipamiento{
+   typedef struct equipamiento {
       int   sku;                       // Identificador de modelo (puede repetirse).
       char  descripcion[ TAM_DESC ];
       char  detalles[ TAM_DET ];
@@ -35,7 +35,7 @@
    // ########################################################
    // Nodo_t
    // ########################################################
-   typedef struct Nodo_s{
+   typedef struct Nodo_s {
       struct Nodo_s *prevNode;
       struct Nodo_s *nextNode;
       Dato_t         dato;
@@ -46,16 +46,18 @@
    // ########################################################
    
    // ### Manejo de nodos ###
-   void     popNode( Nodo_t *nodeX );
-   void     pushNode( Nodo_t **startNode, Nodo_t *newNode );
-   Nodo_t * createNode( Dato_t *datoX );
-   void     mergeData( Dato_t *datoInput, Dato_t newData, int mergeSelection ); 
+   void     pop_node( Nodo_t *nodeX );
+   void     push_node( Nodo_t *bottom, Nodo_t *ham, Nodo_t *top );
+   void     ordered_insertion( Nodo_t **startNode, Nodo_t *newNode, int orden \
+                              int (*ordenamiento)( Nodo_t *backNode, Nodo_t *frontNode, int orden ) );
+   Nodo_t * create_node( Dato_t *datoX );
+   void     merge_data( Dato_t *datoInput, Dato_t newData, int mergeSelection ); 
    
    // ### Ordenamiento ###
-   void     sortList( Nodo_t **startNode, int ordenamiento[], \
-                      int (*ordenamientoLista[])( Nodo_t *backNode, Nodo_t *frontNode, int orden ) );
-   int      isListOrdered( Nodo_t *startNode, int orden, \
-                           int (*ordenamiento)( Nodo_t *backNode, Nodo_t *frontNode, int orden ) );
-   void     swapNodes( Nodo_t *backNode, Nodo_t *frontNode );
+   void     sort_list( Nodo_t **startNode, int ordenamiento[], \
+                              int (*criterio_ordenamiento[])( Nodo_t *backNode, Nodo_t *frontNode, int orden ) );
+   Nodo_t * is_list_ordered( Nodo_t *startNode, int orden, \
+                              int (*ordenamiento)( Nodo_t *backNode, Nodo_t *frontNode, int orden ) );
+   void     swap_nodes( Nodo_t *backNode, Nodo_t *frontNode );
 #endif
 

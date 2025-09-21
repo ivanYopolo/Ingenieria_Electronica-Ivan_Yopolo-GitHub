@@ -15,7 +15,7 @@
    // ########################################################
    // Funciones
    // ########################################################
-   char   * writeStrD();
-   void     writeStr( char *string, int tamString );
+   char   * write_str_d();
+   void     write_str( char *string, int tamString );
 #endif
 

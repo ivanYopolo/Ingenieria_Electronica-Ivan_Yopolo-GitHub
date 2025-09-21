@@ -1,5 +1,13 @@
 #include "lista_doble-lib.h"
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>	
+#include <ctype.h>
 
 // ########################################################
 // ### Manejo de nodos ###
@@ -7,7 +15,7 @@
 
 
 //------------------------------------------------------------------------
-// popNode - [ DONE ]
+// pop_node - [ DONE ]
 //------------------------------------------------------------------------
 /* Saca un nodo de la lista (FIFO).
  * Verifiicar casos:
@@ -15,81 +23,135 @@
     * Nodo final.
     * Nodo inicial.
  */
-void popNode( Nodo_t **nodeX ) {
+void pop_node( Nodo_t *nodeX ) {
    Nodo_t *nodeAux = NULL;
    
-   if ( *nodeX != NULL ){
+   if ( nodeX != NULL ) {
       // Caso primer nodo:
-      if ( (*nodeX)->prevNode == NULL ){
-         // Auxiliar apunta al nodo "n".
-         nodeAux = (*nodeX);  
+      if ( nodeX->prevNode == NULL ) {
          
-         // Apunta al nodo "n+1", elimina el anterior. 
-         (*nodeX) = (*nodeX)->nextNode; 
-         
-         // "n-1" pasa a ser NULL.
-         (*nodeX)->prevNode = NULL;   
+         nodeAux = nodeX;           // Auxiliar apunta al nodo "n". 
+         nodeX = nodeX->nextNode;   // Apunta al nodo "n+1", elimina el anterior. 
+         nodeX->prevNode = NULL;    // "n-1" pasa a ser NULL.
          
          free( nodeAux );    
-      }else
-      
-      // Caso último nodo:
-      if ( (*nodeX)->nextNode == NULL ){
-         // Nodo "n-1" "NULL", elimina el actual. 
-         (*nodeX)->prevNode = NULL; 
-         
-         free( *nodeX );
+      } else {
+         // Caso último nodo:
+         if ( nodeX->nextNode == NULL ) {
+            
+            nodeX->prevNode = NULL;    // Nodo "n-1" "NULL", elimina el actual. 
+            
+            free( nodeX );
+         } else {
+            // Caso nodo del diome:
+            if ( nodeX->nextNode != NULL && nodeX->prevNode != NULL ) {
+            
+               nodeAux = nodeX;     // Auxiliar apunta al nodo "n".
+               Nodo_t *backNode  = nodeX->prevNode;   // Apunta a "n-1".
+               Nodo_t *frontNode = nodeX->nextNode;   // Apunta a "n+1".
+               
+               // Back & Front se enlazan entre sí, perdiendo a "nodeX".
+               backNode->nextNode  = frontNode;
+               frontNode->prevNode = backNode;
+               
+               free( nodeAux );    
+            }
+         }
       }
-      
-      // Caso nodo del diome:
-      if ( (*nodeX)->nextNode != NULL && (*nodeX)->prevNode != NULL ){
-         // Auxiliar apunta al nodo "n".
-         nodeAux = (*nodeX);  
-         // Apunta a "n-1".
-         Nodo_t *backNode  = (*nodeX)->prevNode;
-         // Apunta a "n+1".
-         Nodo_t *frontNode = (*nodeX)->nextNode;
-         
-         // Back & Front se enlazan entre sí, perdiendo a "nodeX".
-         backNode->nextNode  = frontNode;
-         frontNode->prevNode = backNode;
-         
-         free( nodeAux );    
-      }
-      
    }
 }
 
 
 //------------------------------------------------------------------------
-// pushNode - [ REV ]
+// push_node - [ REV ]
 //------------------------------------------------------------------------
-/* Agrega un nodo a la lista (FIFO).
- * Ver manera de hacer INSERCIÓN ORDENADA.
+/* Agrega un nodo a la lista entre otros 2 nodos.
+ *
+ * Verificar casos:
+      - Primer nodo:
+ *
+ * bottom: nodo anterior al nuevo a agregar.
+ * ham: nuevo nodo a agregar a la lista.
+ * top: nodo posterior al nuevo a agregar.
  */
-void pushNode( Nodo_t **startNode, Nodo_t *newNode ) {
-   // El siguiente del Nodo nuevo apunta al viejo inicio de la lista (FIFO).
-   newNode->nextNode = *startNode;
+void push_node( Nodo_t *bottom, Nodo_t *ham, Nodo_t *top ) {
    
-   // El viejo anterior deja de ser NULL y pasa a ser el nuevo Nodo.
-   (*startNode)->prevNode = newNode;
-   
-   // El inicio de la lista es el nuevo Nodo.
-   *startNode = newNode;
-   
-   // El anterior es el NULL.
-   newNode->prevNode = NULL;
+   if ( ham != NULL && !( bottom != NULL && top != NULL ) ) {
+      ham->prevNode = bottom;
+      ham->nextNode = top;
+      
+      if ( bottom == NULL && top != NULL ) {  // Caso nodo al inicio.
+         top->prevNode = ham;
+      } else {
+      
+         if ( bottom != NULL && top == NULL ) {  // Caso nodo al final.
+            bottom->nextNode = ham;
+            
+         } else {       // Caso nodo al diome.
+            bottom->nextNode = ham;
+            top->prevNode = ham;
+         }
+      }
+   }
 }
 
 
 //------------------------------------------------------------------------
-// createNode - [ DONE ]
+// ordered_insertion - [ REV ]
+//------------------------------------------------------------------------
+/* Revisa la lista entera e inserta el nuevo nodo de forma ordenada.
+ * Con el puntero a función, checkea el punto exacto donde meter el nodo.
+ *
+ * Con (*criterio_ordenamiento), checkea si "nodoX" va antes de "newNode" según
+ * el criterio de ordenamiento deseado.
+ */
+void ordered_insertion( Nodo_t **startNode, Nodo_t *newNode, int sentido \
+                        int (*criterio_ordenamiento)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) ) {
+   Nodo_t   *nodoX = *startNode;
+   Nodo_t   *anterior = nodoX->prevNode;
+   int      ordenados = 1;
+   
+   if ( newNode != NULL ) {
+   
+      while ( nodoX != NULL && ordenados == 1 ) {  // Compara el orden entre "nodoX" y "newNode".
+         if ( (*criterio_ordenamiento)( nodoX, newNode, sentido ) == 0 ) {
+            ordenados = 0;
+         } else {
+            anterior = nodoX;
+            nodoX = nodoX->nextNode;
+         }
+      }
+      
+      if ( !ordenados ) {  // NO están ordenados.
+      
+         if ( *startNode != NULL ) { // Caso general.
+            push_node( anterior, newNode, nodoX );   
+            
+         } else { // Caso particular: lista vacía.
+            *startNode = newNode; 
+         }
+      } else { // Están "ordenados", el nuevo nodo va al final.
+         push_node( anterior, newNode, NULL );
+      }
+   }
+}
+
+//------------------------------------------------------------------------
+// create_node - [ DONE ]
 //------------------------------------------------------------------------
 /* Crea un nodo en la lista (FIFO).
  */
-Nodo_t * createNode( Dato_t *datoX ){
+Nodo_t * create_node( Dato_t *datoX ) {
+   // ### LOG ###
+   int fdLog = open( "create_node.log", O_WRONLY | O_CREAT | O_TRUNC, 0666 );
+   dprintf( fdLog, "\n------------------------------------------------------------------------\n" );
+   dprintf( fdLog, "### \tNodo creado\t###\n" );
+
    // Asigna nuevo Nodo de forma DINÁMICA (queda en el HEAP).
    Nodo_t *newNode = (Nodo_t *) malloc( sizeof(Nodo_t) );
+   
+   // ### LOG ###
+   dprintf( fdLog, "[ Nodo:\t%p ]", (void *)newNode );
    
    // Anterior y siguiente apuntan a NULL.
    newNode->prevNode = NULL;
@@ -98,33 +160,36 @@ Nodo_t * createNode( Dato_t *datoX ){
    // Copia structs de DATOS.
    newNode->dato = *datoX;
    
+   // ### LOG ###
+   close( fdLog );
+   
    return newNode;
 }
 
 
 //------------------------------------------------------------------------
-// mergeData - [ DONE ]
+// merge_data - [ DONE ]
 //------------------------------------------------------------------------
-/* Junta datos repetidos en un mismo nodo.
+/* Junta datos repetidos (SKUs) en un mismo nodo.
  *
  * # Merge Selection #
-   1) Conserva nodoX.
    1) Conserva datoInput.
+   2) Conserva newData.
  */
-void mergeData( Nodo_t *nodoX, Dato_t datoInput, int mergeSelection ) {
+void merge_data( Dato_t *datoInput, Dato_t newData, int mergeSelection ) {
    
-   nodoX->dato.cantidad += datoInput.dato.cantidad;   // Junta los Stocks.
+   datoInput->cantidad += newData.cantidad;   // Junta los Stocks.
 
    switch ( mergeSelection ) {
-      case 1:  // Conserva nodoX.
+      case 1:  // Conserva datoInput.
          // Do nothing.
       break;
       
-      case 2:  // Conserva datoInput.
-         strncpy( nodoX->dato.descripcion,   datoInput.dato.descripcion,   strlen( datoInput.dato.descripcion ) + 1  );
-         strncpy( nodoX->dato.detalles,      datoInput.dato.detalles,      strlen( datoInput.dato.detalles ) + 1     );
-         nodoX->dato.especialidad = datoInput.dato.especialidad;
-         nodoX->dato.precio = datoInput.dato.precio;
+      case 2:  // Conserva newData.
+         strncpy( datoInput->descripcion,   newData.descripcion,   strlen( newData.descripcion ) + 1  );
+         strncpy( datoInput->detalles,      newData.detalles,      strlen( newData.detalles ) + 1     );
+         datoInput->especialidad = newData.especialidad;
+         datoInput->precio = newData.precio;
       break;
    }
 }
@@ -135,38 +200,40 @@ void mergeData( Nodo_t *nodoX, Dato_t datoInput, int mergeSelection ) {
 // ########################################################################
 
 //------------------------------------------------------------------------
-// sortList - [ REV ]
+// sort_list - [ REV ]
 //------------------------------------------------------------------------
 /* Ordena la lista entera (bubblesort).
  * Utiliza puntero a función dependiendo del tipo de dato a ordenar y
  * del sentido del orden.
  *
  * # ordenamiento[2] #
- * 0: Dato a ordenar.
- * 1: Sentido de ordenamiento.
+ * [0]: Dato a ordenar.
+ * [1]: Sentido de ordenamiento.
  *
  * Puede ponerse de argumento el puntero a función genérico y se crea 
  * dicho puntero a función por fuera.
  * Ej.:
- * int (*ordenamientoLista[ 3 ])( Nodo_t *backNode, Nodo_t *frontNode, int orden ) = 
+ * int (*criterio_ordenamiento[ 3 ])( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) = 
  *     { ordenEspecialidad, ordenPrecio, ordenDisponibilidad };
  */
-void sortList( Nodo_t **startNode, const int ordenamiento[], \
-               int (*ordenamientoLista)( Nodo_t *backNode, Nodo_t *frontNode, int orden ) ) {
+void sort_list( Nodo_t **startNode, int ordenamiento[], \
+               int (*criterio_ordenamiento[])( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) ) {
    
-   Node_t *nodoX = NULL;
+   Nodo_t *nodoX = NULL;
    
-   // Verifica si la lista está ordenada o no.
+   // # Verifica si la lista está ordenada o no #
+   
    // Pasada externa para la lista entera.
-   while ( !isListOrdered( *startNode, (*ordenamientoLista)[ ordenamiento[ 0 ] ]( nodoX, nodoX->nextNode, ordenamiento[ 1 ] ) ) ) {   
+   // Pasa la dirección de la función requerida.
+   while ( is_list_ordered( *startNode, ordenamiento[1], &(*criterio_ordenamiento[ordenamiento[0]]) ) == NULL ) {   
       
       nodoX = *startNode;
       
       // Pasada interna por nodo.
       while ( nodoX != NULL && nodoX->nextNode != NULL ) {
          
-         // Compara según el dato a ordenar entre el nodo actual y el siguiente.
-         if ( (*ordenamientoLista)[ ordenamiento[ 0 ] ]( nodoX, nodoX->nextNode, ordenamiento[ 1 ] ) ) {
+         // Compara el nodo actual y el siguiente, si están ordenados.
+         if ( (*criterio_ordenamiento[ordenamiento[0]])( nodoX, nodoX->nextNode, ordenamiento[1] ) == 1 ) {
          
             if ( nodoX == *startNode ) {
                // Para evitar perder el inicio de la lista, antes de 
@@ -175,9 +242,9 @@ void sortList( Nodo_t **startNode, const int ordenamiento[], \
             }
          
             // Los Intercambia si es que cumple los criterios pedidos.
-            swapNodes( nodoX, nodoX->nextNode );
+            swap_nodes( nodoX, nodoX->nextNode );
             
-         } else { // Si no cambia de lugar los nodos.
+         } else { // Si no cambia de lugar los nodos:
          
             nodoX = nodoX->nextNode;   // Pasa al siguiente nodo.
          }
@@ -187,43 +254,48 @@ void sortList( Nodo_t **startNode, const int ordenamiento[], \
 
 
 //------------------------------------------------------------------------
-// isListOrdered - [ REV ]
+// is_list_ordered - [ REV ]
 //------------------------------------------------------------------------
 /* Verifica si la lista entera está ordenada.
  * Sale si llega al final y verifica efectivamente su ordenamiento o si
  * NO está ordenada en algún punto.
  * Devuelve:
-   - 0 si NO está ordenada.
-   - 1 si está ordenada.
+ *
+   - Dirección de "nodoX" si NO está ordenada; la dirección del nodo
+     que no está ordenado respecto del siguiente.
+ *    
+   - NULL si está ordenada.
  *
  * # Function Pointer #
  * Esta toma 2 nodos, uno "trasero" y otro "frontal", o "n" y "n+1", además
- * de un entero de "orden" para indicar orden ascendente (ORD_ASC) o 
+ * de un entero de "sentido" para indicar orden ascendente (ORD_ASC) o 
  * descendente (ORD_DES). 
  * Devuelve:
+ *
    - 0 si los 2 nodos NO cumplen el criterio de ordenamiento.
+ *
    - 1 si lo cumplen.
  */
-int isListOrdered( const Nodo_t *startNode, \
-                   int (*ordenamiento)( Nodo_t *backNode, Nodo_t *frontNode, int orden ) ) {
-   Node_t *nodoX = startNode;   // Temporal como cursor, para recorrer lista.
+Nodo_t * is_list_ordered( Nodo_t *startNode, int sentido, \
+                          int (*ordenamiento)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) ) {
+   Nodo_t *nodoX = startNode;   // Temporal como cursor, para recorrer lista.
    int ordenada = 1;
    
    while ( nodoX != NULL && ordenada != 0 ) {
       // Según el método de ordenamiento y sentido orden elegido, evalúa su estado de orden.
-      if ( !(*ordenamiento)( nodoX, nodoX->nextNode, orden ) ) {
+      if ( (*ordenamiento)( nodoX, nodoX->nextNode, sentido ) == 0 ) {
          ordenada = 0;
+      } else {
+         nodoX = nodoX->nextNode;
       }
-
-      nodoX = nodoX->nextNode;
    }  // Sale si llega al final o si no está ordenada la lista.
    
-   return ordenada;  // Ordenados naturalmente a menos que lo indique la función.
+   return nodoX;  // Ordenados naturalmente (NULL) a menos que lo indique la función.
 }
 
 
 //------------------------------------------------------------------------
-// swapNodes - [ DONE ]
+// swap_nodes - [ DONE ]
 //------------------------------------------------------------------------
 /* Cambia los nodos de lugar.
  *
@@ -238,7 +310,7 @@ int isListOrdered( const Nodo_t *startNode, \
    - Nodo del diome.
    - Nodo final.
  */
-void swapNodes( Nodo_t *backNode, Nodo_t *frontNode ) {
+void swap_nodes( Nodo_t *backNode, Nodo_t *frontNode ) {
    Nodo_t *anterior = NULL;      // "n-1".
    Nodo_t *siguiente = NULL;     // "n+2".
 
