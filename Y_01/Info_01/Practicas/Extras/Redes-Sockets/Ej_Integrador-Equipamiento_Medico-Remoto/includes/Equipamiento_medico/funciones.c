@@ -91,7 +91,7 @@ void get_user_input( Nodo_t **startNode, int sentido, \
    int      sku = 1;
    int      stock = 1;
    int      especialidadTemp = 1;
-   float    precioTemp = 1; 
+   float    precioTemp = 0; 
    char     especialidadStr[7][20] = 
             { "Cardiología", "Clínica", "Gastroenterología", "Cirugía", "Dermatología", "Oftalmología", "Traumatología" };
    Dato_t   *newData = NULL;
@@ -225,7 +225,7 @@ void get_user_input( Nodo_t **startNode, int sentido, \
       } else {                            // Caso general.
          newNode = create_node( newData );
          // Agrega nodo a la lista (inserción ordenada).
-         ordered_insertion( startNode, newNode, sentido, criterio_orden );
+         ordered_insertion( startNode, newNode, sentido, (*criterio_orden) );
       }
       
       // # LOG #
@@ -246,11 +246,8 @@ void get_user_input( Nodo_t **startNode, int sentido, \
          if ( allowInput != 1 && allowInput != 0 )
             printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n\n" );
       } while ( allowInput != 1 && allowInput != 0 );
-      
-   } while ( allowInput == 1 );  
-   // Terminó de registrar datos.
+   } while ( allowInput == 1 );  // Terminó de registrar datos.
    
-   // # LOG #
    close( fdLog );
 }
 
@@ -501,7 +498,7 @@ void eliminate_data( Nodo_t *startNode ) {
 // ########################################################
 
 //--------------------------------------------------------------------------
-// show_data - [ DONE ]
+// show_data - [ REV ]
 //--------------------------------------------------------------------------
 /* Muestra datos de un nodo en pantalla.
  */
@@ -514,33 +511,7 @@ void show_data( Dato_t datoX ) {
    printf( "* Precio:            \t%.02f\n", datoX.precio );
    
    switch ( datoX.especialidad ){   // Imprimir según especialidad.
-      case CARDIOLOGIA:
-         printf( "* Especialidad:      \tCARDIOLOGIA.\n" );
-      break;
-      
-      case CLINICA:
-         printf( "* Especialidad:      \tCLINICA.\n" );
-      break;
-      
-      case GASTROENTEROLOGIA:
-         printf( "* Especialidad:      \tGASTROENTEROLOGIA.\n" );
-      break;
-      
-      case CIRUGIA:
-         printf( "* Especialidad:      \tCIRUGIA.\n" );
-      break;
-      
-      case DERMATOLOGIA:
-         printf( "* Especialidad:      \tDERMATOLOGIA.\n" );
-      break;
-      
-      case OFTALMOLOGIA:
-         printf( "* Especialidad:      \tOFTALMOLOGIA.\n" );
-      break;
-      
-      case TRAUMATOLOGIA:
-         printf( "* Especialidad:      \tTRAUMATOLOGIA.\n" );
-      break;
+   
    }
 }
 
@@ -649,12 +620,6 @@ char * cargar_datos( Nodo_t **startNode, int sentido, \
    Dato_t   datoInput;
    Nodo_t   *nodoX = NULL;
    
-   fechaTemp[TAM_DATE - 1] = '\0';
-   
-   // # LOG #
-   int      fdLog = 0;
-   fdLog = open( "read_file.log", O_WRONLY | O_CREAT | O_TRUNC, 0666 );
-   
    // ### Abre el archivo a extraer datos ###
    do {
       printf( "Ingrese el nombre del archivo a cargar información.\n"
@@ -670,22 +635,13 @@ char * cargar_datos( Nodo_t **startNode, int sentido, \
       }
    } while ( fdData < 1 );
    
-   // # LOG #
-   dprintf( fdLog, "### Archivo leído exitosamente ###\n" );
-   
    // ### Carga datos a la lista ###
    
-   bytesRd = read( fdData, fechaTemp, TAM_DATE - 1 );   // Lee la fecha.
+   bytesRd = read( fdData, fechaTemp, TAM_DATE );   // Lee la fecha.
    
    if ( bytesRd == TAM_DATE && fechaTemp != NULL ) {
    
-      // # LOG #
-      dprintf( fdLog, "### Fecha:\t%s ###\n", fechaTemp );
-   
       bytesRd = read( fdData, &datoInput, sizeof(Dato_t) );  // Lee 1 dato.
-
-      // # LOG #
-      dprintf( fdLog, "[ DATO LEÍDO. ]\n" );
 
       while ( bytesRd == sizeof(Dato_t) ) {  // Pasa por la lista entera.
       
@@ -721,23 +677,13 @@ char * cargar_datos( Nodo_t **startNode, int sentido, \
          }
          
          bytesRd = read( fdData, &datoInput, sizeof(Dato_t) );  // Lee 1 dato.
-         
-         // # LOG #
-         dprintf( fdLog, "[ DATO LEÍDO. ]\n" );
       }  // Terminó de leer el archivo.
 
       printf( "\n[ Lectura exitosa. ]\n\n" );
       
-      // # LOG #
-      dprintf( fdLog, "\n[ Lectura exitosa. ]\n"
-                      "------------------------------------------------------------------------\n" );
-      
    } else {    // N° de Bytes leídos menor a la fecha.
       printf( "\n[ ARCHIVO VACÍO. ]\n\n" );
    }
-   
-   // # LOG #
-   close( fdLog );
    
    close( fdData );
    

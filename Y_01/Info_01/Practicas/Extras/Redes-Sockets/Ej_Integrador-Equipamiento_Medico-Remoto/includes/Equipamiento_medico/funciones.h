@@ -31,7 +31,7 @@
    #define CLINICA            2
    #define GASTROENTEROLOGIA  3
    #define CIRUGIA            4
-   #define DERMATOLOGIA       5
+   #define DEREMATOLOGIA      5
    #define OFTALMOLOGIA       6
    #define TRAUMATOLOGIA      7
    
