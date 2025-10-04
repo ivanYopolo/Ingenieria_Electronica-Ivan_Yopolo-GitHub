@@ -44,7 +44,7 @@ int main() {
    
    int      ordenamiento[2] = { ORD_ESP, ORD_ASC };   // Tipo de ordenamiento a realizar.
    int      (*criterio_orden[3])( Nodo_t *backNode, Nodo_t *frontNode, int orden ) = 
-               { &orden_especialidad, &orden_precio, &orden_disponibilidad };    // Array de funciones para ordenamiento.
+               { orden_especialidad, orden_precio, orden_disponibilidad };    // Array de funciones para ordenamiento.
    
    // Formato: DD/MM/YYYY.
    char     *fechaTempStr = NULL;      // String de fecha del tiempo actual.

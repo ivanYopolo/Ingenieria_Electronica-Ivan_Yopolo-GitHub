@@ -105,7 +105,7 @@ void push_node( Nodo_t *bottom, Nodo_t *ham, Nodo_t *top ) {
  * Con (*criterio_ordenamiento), checkea si "nodoX" va antes de "newNode" según
  * el criterio de ordenamiento deseado.
  */
-void ordered_insertion( Nodo_t **startNode, Nodo_t *newNode, int sentido \
+void ordered_insertion( Nodo_t **startNode, Nodo_t *newNode, int sentido, \
                         int (*criterio_ordenamiento)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) ) {
    Nodo_t   *nodoX = *startNode;
    Nodo_t   *anterior = nodoX->prevNode;
@@ -216,8 +216,8 @@ void merge_data( Dato_t *datoInput, Dato_t newData, int mergeSelection ) {
  * int (*criterio_ordenamiento[ 3 ])( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) = 
  *     { ordenEspecialidad, ordenPrecio, ordenDisponibilidad };
  */
-void sort_list( Nodo_t **startNode, int ordenamiento[], \
-               int (*criterio_ordenamiento[])( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) ) {
+void sort_list( Nodo_t **startNode, int sentido, \
+               int (*criterio_ordenamiento)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) ) {
    
    Nodo_t *nodoX = NULL;
    
@@ -225,7 +225,7 @@ void sort_list( Nodo_t **startNode, int ordenamiento[], \
    
    // Pasada externa para la lista entera.
    // Pasa la dirección de la función requerida.
-   while ( is_list_ordered( *startNode, ordenamiento[1], &(*criterio_ordenamiento[ordenamiento[0]]) ) == NULL ) {   
+   while ( is_list_ordered( *startNode, sentido, (*criterio_ordenamiento) ) == NULL ) {   
       
       nodoX = *startNode;
       
@@ -233,19 +233,16 @@ void sort_list( Nodo_t **startNode, int ordenamiento[], \
       while ( nodoX != NULL && nodoX->nextNode != NULL ) {
          
          // Compara el nodo actual y el siguiente, si están ordenados.
-         if ( (*criterio_ordenamiento[ordenamiento[0]])( nodoX, nodoX->nextNode, ordenamiento[1] ) == 1 ) {
+         if ( (*criterio_ordenamiento)( nodoX, nodoX->nextNode, sentido ) == 0 ) {
          
-            if ( nodoX == *startNode ) {
+            if ( nodoX == *startNode ) {  // Caso particular: principio de la lista.
                // Para evitar perder el inicio de la lista, antes de 
                // cambiarlos de lugar, se guarda el "nuevo inicio".
                *startNode = nodoX->nextNode;
             }
-         
-            // Los Intercambia si es que cumple los criterios pedidos.
             swap_nodes( nodoX, nodoX->nextNode );
             
-         } else { // Si no cambia de lugar los nodos:
-         
+         } else { // Si están ordenados, pasa de largo:
             nodoX = nodoX->nextNode;   // Pasa al siguiente nodo.
          }
       }  // Terminó de pasar por toda la lista, comparando 1 nodo en particular.

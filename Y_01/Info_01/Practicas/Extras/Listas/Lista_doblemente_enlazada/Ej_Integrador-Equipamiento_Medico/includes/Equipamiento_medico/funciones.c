@@ -498,7 +498,7 @@ void eliminate_data( Nodo_t *startNode ) {
 // ########################################################
 
 //--------------------------------------------------------------------------
-// show_data - [ DONE ]
+// show_data - [ REV ]
 //--------------------------------------------------------------------------
 /* Muestra datos de un nodo en pantalla.
  */
@@ -509,6 +509,10 @@ void show_data( Dato_t datoX ) {
    printf( "* Detalles:          \t%s\n", datoX.detalles );
    printf( "* Cantidad en stock: \t%d\n", datoX.cantidad );
    printf( "* Precio:            \t%.02f\n", datoX.precio );
+   
+   switch ( datoX.especialidad ){   // Imprimir según especialidad.
+   
+   }
 }
 
 
@@ -598,7 +602,7 @@ char * obtener_fecha() {
 // ########################################################
 
 //------------------------------------------------------------------------
-// cargar_datos - [ REV ]
+// cargar_datos - [ ERR ] (segmentation fault)
 //------------------------------------------------------------------------
 /* Carga datos de un archivo de base de datos en la lista.
  * NO SOBREESCRIBE LISTA, sinó que agrega nodos a la misma.

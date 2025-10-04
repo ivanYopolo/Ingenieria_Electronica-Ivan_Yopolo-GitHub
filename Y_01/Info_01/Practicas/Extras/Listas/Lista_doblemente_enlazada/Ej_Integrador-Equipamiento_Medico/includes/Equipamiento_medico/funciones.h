@@ -12,8 +12,9 @@
 	#include <ctype.h>
    #include <time.h>
    
-   #include "../../includes/GetString_console/getstring-lib.h"
-   #include "../../includes/Manejo_Listas/Doble/lista_doble-lib.h"
+   #include "../../includes/GetString_console/getstring-lib.h"       // Obtener string del kernel.
+   #include "../../includes/Manejo_Listas/Doble/lista_doble-lib.h"   // Manejo de listas dobles.
+   #include "../debugging.h"  // Debugging de funciones.
    
    // ########################################################
    // Defines
