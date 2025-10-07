@@ -1,4 +1,6 @@
-#ifndef debugging
+#ifndef DEBUGGING
+   #define DEBUGGING
+   
    #include <sys/types.h>
 	#include <sys/stat.h>
 	#include <fcntl.h>
@@ -8,4 +10,6 @@
 	#include <stdlib.h>
 	#include <ctype.h>
 	#include <string.h>	
+   
+   void show_data_log( Dato_t datoX, int fdLog );  // [ DONE ]
 #endif

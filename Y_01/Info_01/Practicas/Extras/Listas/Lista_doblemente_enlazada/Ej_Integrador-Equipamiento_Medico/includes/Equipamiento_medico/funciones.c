@@ -94,7 +94,6 @@ void get_user_input( Nodo_t **startNode, int sentido, \
    float    precioTemp = 1; 
    char     especialidadStr[7][20] = 
             { "Cardiología", "Clínica", "Gastroenterología", "Cirugía", "Dermatología", "Oftalmología", "Traumatología" };
-   // Dato_t   *newData = NULL;
    Nodo_t   *newNode = NULL;
    
    // # LOG #
@@ -102,7 +101,6 @@ void get_user_input( Nodo_t **startNode, int sentido, \
    fdLog = open( "./log/get_user_input.log", O_WRONLY | O_CREAT | O_TRUNC, 0666 );
    
    do {  // Repetición de función.
-      // newData = malloc( sizeof(Dato_t) );
       Dato_t newData;
    
       dprintf( fdLog, "### Creando dato... ###\n" );
@@ -128,20 +126,7 @@ void get_user_input( Nodo_t **startNode, int sentido, \
       // # Descripción #
       printf( "* Descripción:\t\t" );
       write_str( newData.descripcion, TAM_DESC );
-      /*
-      while( fgets( newData.descripcion, TAM_DESC, stdin ) == NULL ){
-         printf( "[ ERROR: POR FAVOR, ESCRIBA DE VUELTA. ]\n" );
-      }  // ERROR
-      // Flushea el buffer:
-      if( newData.descripcion[strlen( newData.descripcion ) - 1] != '\n' ){
-         int ch = 0;
-         while( ( ch = getchar() ) != '\n' && ch != EOF );
-      }
-      // Si se detecta un salto de línea:
-      if( newData.descripcion[strlen( newData.descripcion ) - 1] == '\n' ){
-         newData.descripcion[strlen( newData.descripcion ) - 1] = '\0';
-      }
-      */
+      
       // # LOG #
       dprintf( fdLog, "* Descripción:\t\t%s\n", newData.descripcion );
       
@@ -149,20 +134,7 @@ void get_user_input( Nodo_t **startNode, int sentido, \
       // # Detalles #
       printf( "* Detalles:   \t\t" );
       write_str( newData.detalles, TAM_DESC );
-      /*
-      while( fgets( newData.detalles, TAM_DET, stdin ) == NULL ){
-         printf( "[ ERROR: POR FAVOR, ESCRIBA DE VUELTA. ]\n" );
-      }  // ERROR
-      // Flushea el buffer:
-      if( newData.detalles[strlen( newData.detalles ) - 1] != '\n' ){
-         int ch = 0;
-         while( ( ch = getchar() ) != '\n' && ch != EOF );
-      }
-      // Si se detecta un salto de línea:
-      if( newData.detalles[strlen( newData.detalles ) - 1] == '\n' ){
-         newData.detalles[strlen( newData.detalles ) - 1] = '\0';
-      }
-      */
+      
       // # LOG #
       dprintf( fdLog, "* Detalles:   \t\t%s\n", newData.detalles );
       
@@ -551,6 +523,51 @@ void show_data( Dato_t datoX ) {
 
 
 //--------------------------------------------------------------------------
+// show_data_log - [ DONE ]
+//--------------------------------------------------------------------------
+/* Muestra datos de un nodo en pantalla.
+ */
+void show_data_log( Dato_t datoX, int fdLog ) {
+   dprintf( fdLog, "\n#########################################################\n" );
+   dprintf( fdLog, "* SKU:               \t%d\n", datoX.sku );
+   dprintf( fdLog, "* Descripción:       \t%s\n", datoX.descripcion );
+   dprintf( fdLog, "* Detalles:          \t%s\n", datoX.detalles );
+   dprintf( fdLog, "* Cantidad en stock: \t%d\n", datoX.cantidad );
+   dprintf( fdLog, "* Precio:            \t%.02f\n", datoX.precio );
+   
+   switch ( datoX.especialidad ){   // Imprimir según especialidad.
+      case CARDIOLOGIA:
+         dprintf( fdLog, "* Especialidad:      \tCARDIOLOGÍA.\n" );
+      break;
+      
+      case CLINICA:
+         dprintf( fdLog, "* Especialidad:      \tCLÍNICA.\n" );
+      break;
+      
+      case GASTROENTEROLOGIA:
+         dprintf( fdLog, "* Especialidad:      \tGASTROENTEROLOGÍA.\n" );
+      break;
+      
+      case CIRUGIA:
+         dprintf( fdLog, "* Especialidad:      \tCIRUGÍA.\n" );
+      break;
+      
+      case DERMATOLOGIA:
+         dprintf( fdLog, "* Especialidad:      \tDERMATOLOGÍA.\n" );
+      break;
+      
+      case OFTALMOLOGIA:
+         dprintf( fdLog, "* Especialidad:      \tOFTALMOLOGÍA.\n" );
+      break;
+      
+      case TRAUMATOLOGIA:
+         dprintf( fdLog, "* Especialidad:      \tTRAUMATOLOGÍA.\n" );
+      break;
+   }
+}
+
+
+//--------------------------------------------------------------------------
 // close_session - [ DONE ]
 //--------------------------------------------------------------------------
 /* Libera memoria de la lista entera y cierra el archivo.
@@ -585,6 +602,7 @@ Nodo_t * is_SKU_repeated( Nodo_t *startNode, int skuInput ) {
    
    if ( startNode != NULL ) {
       nodoX = startNode;
+      nodoAnt = nodoX;
 
       while ( ( nodoX != NULL ) && ( nodoX->dato.sku != skuInput ) ) {  // Escanea la lista por coincidencias.
          nodoAnt = nodoX;
@@ -593,7 +611,7 @@ Nodo_t * is_SKU_repeated( Nodo_t *startNode, int skuInput ) {
       
       if ( nodoAnt->dato.sku == skuInput ) { // Guarda la dirección del nodo en caso de coincidencia.
          nodoX = nodoAnt;
-      } else { 
+      } else {    // No se repite el SKU.
          nodoX = NULL;
          nodoAnt = NULL;
       }
@@ -654,8 +672,8 @@ char * cargar_datos( Nodo_t **startNode, int sentido, \
    int      bytesRd = 0;
    int      mergeSelection = 0;
    char     *fechaTemp = malloc( TAM_DATE * sizeof(char) );
-   // Dato_t   datoInput;
    Nodo_t   *nodoX = NULL;
+   char     directorio[8] = "./data/";
    char     *nombreArchivo = NULL;
    char     *rutaArchivo = NULL;
    
@@ -672,24 +690,29 @@ char * cargar_datos( Nodo_t **startNode, int sentido, \
       
       nombreArchivo = write_str_d();
       
-      // Agregarle al nombre la ruta hasta "./data/" (+ 7 B).
-      rutaArchivo = malloc( strlen( nombreArchivo ) + 1 + 7 );
-      // rutaArchivo[strlen( nombreArchivo ) + 7] = '\0';
-      strcpy( rutaArchivo, "./data/");
-      strcat( rutaArchivo, nombreArchivo );
-      rutaArchivo[strlen( nombreArchivo ) + 7] = '\0';
-      
-      fdData = open( rutaArchivo, O_RDONLY );
-      
-      if ( fdData < 1 ){
+      if ( nombreArchivo == NULL ) {
          printf( "\n[ ERROR: NOMBRE DE ARCHIVO INVÁLIDO. ]\n\n" );
-         free( nombreArchivo );
-         free( rutaArchivo );
+      } else {
+         // Agregarle al nombre la ruta hasta "./data/" (+ 7 B).
+         rutaArchivo = malloc( strlen( nombreArchivo ) + strlen( directorio ) + 1 );
+         strcpy( rutaArchivo, directorio );
+         strcpy( rutaArchivo + strlen( directorio ), nombreArchivo );
+         rutaArchivo[strlen( nombreArchivo ) + strlen( directorio )] = '\0';
+         fdData = open( rutaArchivo, O_RDONLY );
+         
+         if ( fdData < 1 ) {
+            printf( "\n[ ERROR: NOMBRE DE ARCHIVO INVÁLIDO. ]\n\n" );
+            free( nombreArchivo );
+            free( rutaArchivo );
+         }
       }
-   } while ( fdData < 1 );
+   } while ( fdData < 1 || nombreArchivo == NULL );
    
    // # LOG #
+   dprintf( fdLog, "------------------------------------------------------------------------\n" );
    dprintf( fdLog, "### Archivo leído exitosamente ###\n" );
+   dprintf( fdLog, "------------------------------------------------------------------------\n\n" );
+   dprintf( fdLog, "* Ruta:\t\t%s\n", rutaArchivo );
    
    // ### Carga datos a la lista ###
    
@@ -698,7 +721,7 @@ char * cargar_datos( Nodo_t **startNode, int sentido, \
    if ( bytesRd == TAM_DATE ) {
    
       // # LOG #
-      dprintf( fdLog, "### Fecha:\t%s ###\n", fechaTemp );
+      dprintf( fdLog, "* Fecha:\t%s\n", fechaTemp );
    
       do {  // Pasa por la lista entera.
          
@@ -709,10 +732,13 @@ char * cargar_datos( Nodo_t **startNode, int sentido, \
          
             // # LOG #
             dprintf( fdLog, "[ DATO LEÍDO. ]\n" );
-            dprintf( fdLog, "[ Checkeando SKUs... ]\n" );
+            show_data_log( datoInput, fdLog );
             
             // Checkea los SKUs.
-            if ( *startNode != NULL ) {
+            // # LOG #
+            dprintf( fdLog, "[ Checkeando SKUs... ]\n" );
+            
+            if ( *startNode != NULL ) {   // Caso general.
                
                if ( ( nodoX = is_SKU_repeated( *startNode, datoInput.sku ) ) != NULL ) { // SKU repetido.
                   printf( "Se detectaron los siguientes datos con el mismo SKU:\n" );
@@ -745,15 +771,29 @@ char * cargar_datos( Nodo_t **startNode, int sentido, \
                   dprintf( fdLog, "[ SKUs NO repe. ]\n" );
                   
                   nodoX = create_node( datoInput );     // Agrega un dato a la lista.
-                  ordered_insertion( startNode, nodoX, sentido, (criterio_orden) );
+                  // # LOG #
+                  dprintf( fdLog, "[ Creando nodo... ]\n" );
+                  
+                  push_node( *startNode, nodoX, (*startNode)->nextNode );
+                  sort_list( startNode, sentido, (criterio_orden) );
+                  // ordered_insertion( startNode, nodoX, sentido, (criterio_orden) );
+                  // # LOG #
+                  dprintf( fdLog, "[ Insertado ordenadamente de manera exitosa. ]\n" );
                }
                
-            } else { // Lista vacía.
+            } else {          // Lista vacía.
                // # LOG #
                dprintf( fdLog, "[ SKUs NO repe. ]\n" );
                
                nodoX = create_node( datoInput );     // Agrega un dato a la lista.
-               ordered_insertion( startNode, nodoX, sentido, (criterio_orden) );
+               // # LOG #
+               dprintf( fdLog, "[ Creando nodo... ]\n" );
+               
+               push_node( *startNode, nodoX, (*startNode)->nextNode );
+               sort_list( startNode, sentido, (criterio_orden) );
+               // ordered_insertion( startNode, nodoX, sentido, (criterio_orden) );
+               // # LOG #
+               dprintf( fdLog, "[ Insertado ordenadamente de manera exitosa. ]\n" );
             }
          }
       } while ( bytesRd == sizeof(Dato_t) );  
@@ -883,7 +923,6 @@ void guardar_datos( Nodo_t *startNode, char *fechaAct ) {
             dprintf( fdLog, "* Nombre archivo:\t%s\n", nombreArchivo );
             
             // Agregarle al nombre la ruta hasta "./data/" (+ 7 B).
-            // /*
             rutaArchivo = malloc( strlen( nombreArchivo ) + strlen( directorio ) + 1 );
             strcpy( rutaArchivo, directorio );
             strcpy( rutaArchivo + strlen( directorio ), nombreArchivo );
@@ -891,7 +930,6 @@ void guardar_datos( Nodo_t *startNode, char *fechaAct ) {
             
             // # LOG #
             dprintf( fdLog, "* Ruta:\t\t%s \n", rutaArchivo );
-            // */
             
             if ( ( fdData = open( rutaArchivo, O_RDONLY ) ) > 1 ) {   // Repetido
             // if ( ( fdData = open( nombreArchivo, O_RDONLY ) ) > 1 ) {   // Repetido
@@ -934,11 +972,11 @@ void guardar_datos( Nodo_t *startNode, char *fechaAct ) {
             }  // Evaluación nombres repetidos.
             
          }
+      // fdData < 0: NO existe el archivo o no se pudo abrir.
+      // fdData >= 1: EXISTE el archivo y se ABRIÓ.
       } while ( nombreArchivo == NULL || rutaArchivo == NULL || fdData >= 1 ); 
-      // } while ( nombreArchivo == NULL || fdData < 1 ); 
       // Nombró correctamente el archivo.
       
-      // close( fdData );
       fdData = open( rutaArchivo, O_WRONLY | O_CREAT | O_TRUNC, 0666 );
       // fdData = open( nombreArchivo, O_WRONLY | O_CREAT | O_TRUNC, 0666 );
       
@@ -957,42 +995,7 @@ void guardar_datos( Nodo_t *startNode, char *fechaAct ) {
       nodoX = startNode;
       while ( nodoX != NULL ) {
          // # LOG #
-         dprintf( fdLog, "\n#########################################################\n" );
-         dprintf( fdLog, "* SKU:               \t%d\n", nodoX->dato.sku );
-         dprintf( fdLog, "* Descripción:       \t%s\n", nodoX->dato.descripcion );
-         dprintf( fdLog, "* Detalles:          \t%s\n", nodoX->dato.detalles );
-         dprintf( fdLog, "* Cantidad en stock: \t%d\n", nodoX->dato.cantidad );
-         dprintf( fdLog, "* Precio:            \t%.02f\n", nodoX->dato.precio );
-         
-         switch ( nodoX->dato.especialidad ){   // Imprimir según especialidad.
-            case 1:
-               dprintf( fdLog, "* Especialidad:      \tCARDIOLOGÍA.\n" );
-            break;
-            
-            case 2:
-               dprintf( fdLog, "* Especialidad:      \tCLÍNICA.\n" );
-            break;
-            
-            case 3:
-               dprintf( fdLog, "* Especialidad:      \tGASTROENTEROLOGÍA.\n" );
-            break;
-            
-            case 4:
-               dprintf( fdLog, "* Especialidad:      \tCIRUGÍA.\n" );
-            break;
-            
-            case 5:
-               dprintf( fdLog, "* Especialidad:      \tDERMATOLOGÍA.\n" );
-            break;
-            
-            case 6:
-               dprintf( fdLog, "* Especialidad:      \tOFTALMOLOGÍA.\n" );
-            break;
-            
-            case 7:
-               dprintf( fdLog, "* Especialidad:      \tTRAUMATOLOGÍA.\n" );
-            break;
-         }
+         show_data_log( nodoX->dato, fdLog );
          
          write( fdData, &(nodoX->dato), sizeof(Dato_t) );
          nodoX = nodoX->nextNode; 

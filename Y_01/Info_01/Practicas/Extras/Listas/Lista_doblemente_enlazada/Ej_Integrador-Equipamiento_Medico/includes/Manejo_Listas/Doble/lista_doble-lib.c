@@ -121,6 +121,7 @@ void ordered_insertion( Nodo_t **startNode, Nodo_t *newNode, int sentido, \
    if ( newNode != NULL ) {
    
       nodoX = *startNode;
+      anterior = nodoX;
       while ( nodoX != NULL && ordenados == 1 ) {  // Compara el orden entre "nodoX" y "newNode".
          if ( ( (*criterio_ordenamiento)( nodoX, newNode, sentido ) == 0 ) && \
               ( (*criterio_ordenamiento)( newNode, nodoX->nextNode, sentido ) == 0 ) ) {
@@ -157,43 +158,8 @@ void ordered_insertion( Nodo_t **startNode, Nodo_t *newNode, int sentido, \
                       "------------------------------------------------------------------------\n" );
       
       while ( nodoCursor != NULL ) {
-         dprintf( fdLog, "\n#########################################################\n" );
-         dprintf( fdLog, "* SKU:               \t%d\n", nodoCursor->dato.sku );
-         dprintf( fdLog, "* Descripción:       \t%s\n", nodoCursor->dato.descripcion );
-         dprintf( fdLog, "* Detalles:          \t%s\n", nodoCursor->dato.detalles );
-         dprintf( fdLog, "* Cantidad en stock: \t%d\n", nodoCursor->dato.cantidad );
-         dprintf( fdLog, "* Precio:            \t%.02f\n", nodoCursor->dato.precio );
-         
-         switch ( nodoCursor->dato.especialidad ){   // Imprimir según especialidad.
-            case 1:
-               dprintf( fdLog, "* Especialidad:      \tCARDIOLOGÍA.\n" );
-            break;
-            
-            case 2:
-               dprintf( fdLog, "* Especialidad:      \tCLÍNICA.\n" );
-            break;
-            
-            case 3:
-               dprintf( fdLog, "* Especialidad:      \tGASTROENTEROLOGÍA.\n" );
-            break;
-            
-            case 4:
-               dprintf( fdLog, "* Especialidad:      \tCIRUGÍA.\n" );
-            break;
-            
-            case 5:
-               dprintf( fdLog, "* Especialidad:      \tDERMATOLOGÍA.\n" );
-            break;
-            
-            case 6:
-               dprintf( fdLog, "* Especialidad:      \tOFTALMOLOGÍA.\n" );
-            break;
-            
-            case 7:
-               dprintf( fdLog, "* Especialidad:      \tTRAUMATOLOGÍA.\n" );
-            break;
-         }
-         
+         show_data_log( nodoCursor->dato, fdLog );
+      
          nodoCursor = nodoCursor->nextNode;
       }  // Llegó al final de la lista.
       close( fdLog );
@@ -289,9 +255,8 @@ void sort_list( Nodo_t **startNode, int sentido, \
    
    // Pasada externa para la lista entera.
    // Pasa la dirección de la función requerida.
-   while ( is_list_ordered( *startNode, sentido, (criterio_ordenamiento) ) == NULL ) {   
-      
-      nodoX = *startNode;
+   while ( ( nodoX = is_list_ordered( *startNode, sentido, (criterio_ordenamiento) ) ) != NULL ) {   
+      // nodoX = *startNode;
       
       // Pasada interna por nodo.
       while ( nodoX != NULL && nodoX->nextNode != NULL ) {
@@ -300,14 +265,14 @@ void sort_list( Nodo_t **startNode, int sentido, \
          if ( (*criterio_ordenamiento)( nodoX, nodoX->nextNode, sentido ) == 0 ) {
          
             if ( nodoX == *startNode ) {  // Caso particular: principio de la lista.
-               // Para evitar perder el inicio de la lista, antes de 
-               // cambiarlos de lugar, se guarda el "nuevo inicio".
+               // Para evitar perder el inicio de la lista, antes de cambiarlos de lugar, 
+               // se guarda el "nuevo inicio".
                *startNode = nodoX->nextNode;
             }
             swap_nodes( nodoX, nodoX->nextNode );
             
          } else { // Si están ordenados, pasa de largo:
-            nodoX = nodoX->nextNode;   // Pasa al siguiente nodo.
+            nodoX = nodoX->nextNode;
          }
       }  // Terminó de pasar por toda la lista, comparando 1 nodo en particular.
    }  // Terminó de pasar por toda la lista, con todos los nodos.
