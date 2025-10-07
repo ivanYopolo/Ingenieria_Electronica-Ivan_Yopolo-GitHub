@@ -878,22 +878,23 @@ void guardar_datos( Nodo_t *startNode, char *fechaAct ) {
          
          if ( nombreArchivo == NULL ) {
             printf( "\n[ ERROR: INGRESE UN NOMBRE VÁLIDO. ]\n\n" );
-         } else {
             
-            // Evaluar nombres repetidos.
-            nombreArchivo = write_str_d();
-            
+         } else { // Evaluar nombres repetidos.
             dprintf( fdLog, "* Nombre archivo:\t%s\n", nombreArchivo );
             
             // Agregarle al nombre la ruta hasta "./data/" (+ 7 B).
+            // /*
             rutaArchivo = malloc( strlen( nombreArchivo ) + strlen( directorio ) + 1 );
             strcpy( rutaArchivo, directorio );
-            strcat( rutaArchivo, nombreArchivo );
+            strcpy( rutaArchivo + strlen( directorio ), nombreArchivo );
             rutaArchivo[strlen( nombreArchivo ) + strlen( directorio )] = '\0';
             
+            // # LOG #
             dprintf( fdLog, "* Ruta:\t\t%s \n", rutaArchivo );
+            // */
             
             if ( ( fdData = open( rutaArchivo, O_RDONLY ) ) > 1 ) {   // Repetido
+            // if ( ( fdData = open( nombreArchivo, O_RDONLY ) ) > 1 ) {   // Repetido
                
                // # LOG #
                dprintf( fdLog, "* Sobreescritura\t=\t" );
@@ -915,10 +916,9 @@ void guardar_datos( Nodo_t *startNode, char *fechaAct ) {
                
                switch ( sobreescribir ) {
                   case 1:  // Sobreescritura.
-                     // Sale del while().
-                     // # LOG #
+                     // # LOG #            
                      dprintf( fdLog, "1\n" );
-                     // fdData = open( nombreArchivo, O_WRONLY | O_CREAT | O_TRUNC, 0666 );
+                     
                   break;
                
                   case 2:  // Vuelve a elegir el nombre del archivo.
@@ -928,21 +928,23 @@ void guardar_datos( Nodo_t *startNode, char *fechaAct ) {
                      free( nombreArchivo );
                      free( rutaArchivo );
                      fdData = 0;
+                     close( fdData );
                   break;
                }  // Switch de sobreescritura.
             }  // Evaluación nombres repetidos.
             
-            close( fdData );
          }
-      } while ( nombreArchivo == NULL && fdData < 1 ); 
+      } while ( nombreArchivo == NULL || rutaArchivo == NULL || fdData >= 1 ); 
+      // } while ( nombreArchivo == NULL || fdData < 1 ); 
       // Nombró correctamente el archivo.
       
+      // close( fdData );
       fdData = open( rutaArchivo, O_WRONLY | O_CREAT | O_TRUNC, 0666 );
+      // fdData = open( nombreArchivo, O_WRONLY | O_CREAT | O_TRUNC, 0666 );
       
       // Escribe la fecha actual en formato "DD/MM/YYYY".
       if ( fechaAct == NULL ) {
          fechaAct = obtener_fecha();
-         
       }
       
       write( fdData, fechaAct, TAM_DATE );
