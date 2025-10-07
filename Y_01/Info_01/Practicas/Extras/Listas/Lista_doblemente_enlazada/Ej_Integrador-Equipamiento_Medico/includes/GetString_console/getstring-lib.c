@@ -11,19 +11,19 @@ char * write_str_d() {
    char strI[TAM_STR];
 
    // No poner strlen() porque toma el salto de línea.
-   while( fgets( strI, TAM_STR, stdin ) == NULL ){
+   while ( fgets( strI, TAM_STR, stdin ) == NULL ){
       printf( "[ ERROR: POR FAVOR, ESCRIBA DE VUELTA. ]\n" );
    }  // ERROR
    
    // Flushea el buffer:
-   if( strI[strlen( strI ) - 1] != '\n' ){
+   if ( strI[strlen( strI ) - 1] != '\n' ){
  
       int ch = 0;
-      while( ( ch = getchar() ) != '\n' && ch != EOF );
+      while ( ( ch = getchar() ) != '\n' && ch != EOF );
    }
 
    // Si se detecta un salto de línea:
-   if( strI[strlen( strI ) - 1] == '\n' ){
+   if ( strI[strlen( strI ) - 1] == '\n' ){
       strI[strlen( strI ) - 1] = '\0';
    }
 

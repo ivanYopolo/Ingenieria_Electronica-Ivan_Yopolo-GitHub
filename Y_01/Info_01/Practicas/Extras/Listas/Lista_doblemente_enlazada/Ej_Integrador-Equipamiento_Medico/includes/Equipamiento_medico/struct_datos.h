@@ -1,4 +1,9 @@
-#ifndef struct_datos
+#ifndef STRUCT_DATOS
+   #define STRUCT_DATOS
+   
+   // ########################################################
+   // Defines
+   // ########################################################
    #define TAM_DATE           11
    #define TAM_DESC           20
    #define TAM_DET            200

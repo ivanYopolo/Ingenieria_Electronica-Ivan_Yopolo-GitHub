@@ -66,11 +66,11 @@ int main() {
          
          switch ( menuSelect ) {
             case 1:  // Carga datos desde un archivo.
-               fechaTempStr = cargar_datos( &startNode, ordenamiento[1], (*criterio_orden[ordenamiento[0]]) );
+               fechaTempStr = cargar_datos( &startNode, ordenamiento[1], (criterio_orden[ordenamiento[0]]) );
             break;
             
             case 2:  // ABM de datos.
-               altas_bajas_modificaciones( &startNode, ordenamiento[1], (*criterio_orden[ordenamiento[0]]) );
+               altas_bajas_modificaciones( &startNode, ordenamiento[1], (criterio_orden[ordenamiento[0]]) );
             break;
             
             case 3:  // Guarda datos en un archivo.
@@ -78,7 +78,7 @@ int main() {
             break;
             
             case 4:  // Ordena datos según criterio.
-               ordenar_datos( &startNode, ordenamiento, &(*criterio_orden) );
+               ordenar_datos( &startNode, ordenamiento, criterio_orden );
             break;
             
             case 5:  // Mostrar TODOS los datos.

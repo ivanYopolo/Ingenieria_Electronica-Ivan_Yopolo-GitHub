@@ -114,21 +114,23 @@ void ordered_insertion( Nodo_t **startNode, Nodo_t *newNode, int sentido, \
    int      ordenados = 1;
    
    // # LOG #
-   Nodo_t   *nodoCursor = *startNode;
-   int      fdLog = 0;
-   fdLog = open( "ordered_insertion.log", O_WRONLY | O_CREAT | O_TRUNC, 0666 );
+   Nodo_t   *nodoCursor = NULL;
+   int      fdLog;
+   fdLog = open( "./log/ordered_insertion.log", O_WRONLY | O_CREAT | O_TRUNC, 0666 );
    
    if ( newNode != NULL ) {
    
       nodoX = *startNode;
       while ( nodoX != NULL && ordenados == 1 ) {  // Compara el orden entre "nodoX" y "newNode".
-         if ( (*criterio_ordenamiento)( nodoX, newNode, sentido ) == 0 ) {
+         if ( ( (*criterio_ordenamiento)( nodoX, newNode, sentido ) == 0 ) && \
+              ( (*criterio_ordenamiento)( newNode, nodoX->nextNode, sentido ) == 0 ) ) {
             ordenados = 0;
          } else {    // Sigue escaneando la lista.
             anterior = nodoX;
             nodoX = nodoX->nextNode;
          }
       }
+      // "nodoX" llega a NULL si está la lista ordenada.
       
       if ( !ordenados ) {  // NO están ordenados.
       
@@ -149,21 +151,22 @@ void ordered_insertion( Nodo_t **startNode, Nodo_t *newNode, int sentido, \
       }
       
       // # LOG #
-      nodoX = *startNode;
-      dprintf( fdLog, "------------------------------------------------------------------------\n"
-                      "Nueva inserción ordenada...\n" );
+      nodoCursor = *startNode;
+      dprintf( fdLog, "\n------------------------------------------------------------------------\n"
+                      "Nueva inserción ordenada...\n"
+                      "------------------------------------------------------------------------\n" );
       
       while ( nodoCursor != NULL ) {
          dprintf( fdLog, "\n#########################################################\n" );
-         dprintf( fdLog, "* SKU:               \t%d\n", nodoX->dato.sku );
-         dprintf( fdLog, "* Descripción:       \t%s\n", nodoX->dato.descripcion );
-         dprintf( fdLog, "* Detalles:          \t%s\n", nodoX->dato.detalles );
-         dprintf( fdLog, "* Cantidad en stock: \t%d\n", nodoX->dato.cantidad );
-         dprintf( fdLog, "* Precio:            \t%.02f\n", nodoX->dato.precio );
+         dprintf( fdLog, "* SKU:               \t%d\n", nodoCursor->dato.sku );
+         dprintf( fdLog, "* Descripción:       \t%s\n", nodoCursor->dato.descripcion );
+         dprintf( fdLog, "* Detalles:          \t%s\n", nodoCursor->dato.detalles );
+         dprintf( fdLog, "* Cantidad en stock: \t%d\n", nodoCursor->dato.cantidad );
+         dprintf( fdLog, "* Precio:            \t%.02f\n", nodoCursor->dato.precio );
          
-         switch ( nodoX->dato.especialidad ){   // Imprimir según especialidad.
+         switch ( nodoCursor->dato.especialidad ){   // Imprimir según especialidad.
             case 1:
-               dprintf( fdLog, "* Especialidad:      \tCARDIOLOGIA.\n" );
+               dprintf( fdLog, "* Especialidad:      \tCARDIOLOGÍA.\n" );
             break;
             
             case 2:
@@ -202,26 +205,26 @@ void ordered_insertion( Nodo_t **startNode, Nodo_t *newNode, int sentido, \
 //------------------------------------------------------------------------
 /* Crea un nodo en la lista (FIFO).
  */
-Nodo_t * create_node( Dato_t *datoX ) {
-   // ### LOG ###
-   int fdLog = open( "create_node.log", O_WRONLY | O_CREAT | O_TRUNC, 0666 );
+Nodo_t * create_node( Dato_t datoX ) {
+   // # LOG #
+   int fdLog = open( "./log/create_node.log", O_WRONLY | O_CREAT | O_TRUNC, 0666 );
    dprintf( fdLog, "\n------------------------------------------------------------------------\n" );
    dprintf( fdLog, "### \tNodo creado\t###\n" );
 
    // Asigna nuevo Nodo de forma DINÁMICA (queda en el HEAP).
    Nodo_t *newNode = (Nodo_t *) malloc( sizeof(Nodo_t) );
    
-   // ### LOG ###
+   // # LOG #
    dprintf( fdLog, "[ Nodo:\t%p ]", (void *)newNode );
    
    // Anterior y siguiente apuntan a NULL.
    newNode->prevNode = NULL;
    newNode->nextNode = NULL;
    
-   // Copia structs de DATOS.
-   newNode->dato = *datoX;
+   // Copia los contenidos de los structs tipo "Dato_t".
+   newNode->dato = datoX;
    
-   // ### LOG ###
+   // # LOG #
    close( fdLog );
    
    return newNode;
@@ -242,11 +245,11 @@ void merge_data( Dato_t *datoInput, Dato_t newData, int mergeSelection ) {
    datoInput->cantidad += newData.cantidad;   // Junta los Stocks.
 
    switch ( mergeSelection ) {
-      case 1:  // Conserva datoInput.
+      case 1:  // Conserva "datoInput".
          // Do nothing.
       break;
       
-      case 2:  // Conserva newData.
+      case 2:  // Conserva "newData".
          strncpy( datoInput->descripcion,   newData.descripcion,   strlen( newData.descripcion ) + 1  );
          strncpy( datoInput->detalles,      newData.detalles,      strlen( newData.detalles ) + 1     );
          datoInput->especialidad = newData.especialidad;
@@ -286,7 +289,7 @@ void sort_list( Nodo_t **startNode, int sentido, \
    
    // Pasada externa para la lista entera.
    // Pasa la dirección de la función requerida.
-   while ( is_list_ordered( *startNode, sentido, (*criterio_ordenamiento) ) == NULL ) {   
+   while ( is_list_ordered( *startNode, sentido, (criterio_ordenamiento) ) == NULL ) {   
       
       nodoX = *startNode;
       
@@ -373,8 +376,7 @@ void swap_nodes( Nodo_t *backNode, Nodo_t *frontNode ) {
    Nodo_t *siguiente = NULL;     // "n+2".
 
    if ( backNode != NULL && frontNode != NULL ) {
-      // Caso nodo del diome:
-      if ( backNode->prevNode != NULL && frontNode->nextNode != NULL ) {
+      if ( backNode->prevNode != NULL && frontNode->nextNode != NULL ) {         // Caso nodo del diome:
          anterior = backNode->prevNode;               // "n-1".
          
          siguiente = frontNode->nextNode;             // "n+2".
@@ -390,40 +392,34 @@ void swap_nodes( Nodo_t *backNode, Nodo_t *frontNode ) {
          anterior->nextNode = frontNode;              // Next de "n-1" apunta a "n+1".
          
          siguiente->prevNode = backNode;              // Prev de "n+2" apunta a "n".
-      } else {
-         // Caso nodo inicial:
-         if ( backNode->prevNode == NULL && frontNode->nextNode != NULL ) {
-            anterior = NULL;                             // "n-1" = NULL.
-            
-            siguiente = frontNode->nextNode;             // "n+2".
-            
-            backNode->nextNode = siguiente;              // Next de "n" apunta a "n+2".
-            
-            frontNode->prevNode = anterior;              // Prev de "n+1" apunta a NULL.
-            
-            backNode->prevNode = frontNode;              // Prev de "n" apunta a "n+1".
-            
-            frontNode->nextNode = backNode;              // Next de "n+1" apunta a "n".
-            
-            siguiente->prevNode = backNode;              // Prev de "n+2" apunta a "n".
-         } else {
-            // Caso nodo final:
-            if ( backNode->prevNode != NULL && frontNode->nextNode == NULL ) {
-               anterior = backNode->prevNode;               // "n-1".
-               
-               siguiente = NULL;                            // "n+2" = NULL.
-               
-               backNode->nextNode = siguiente;              // Next de "n" apunta a NULL.
-               
-               frontNode->prevNode = anterior;              // Prev de "n+1" apunta a "n-1".
-               
-               backNode->prevNode = frontNode;              // Prev de "n" apunta a "n+1".
-               
-               frontNode->nextNode = backNode;              // Next de "n+1" apunta a "n".
-               
-               anterior->nextNode = frontNode;              // Next de "n-1" apunta a "n+1".
-            }
-         }
+      } else if ( backNode->prevNode == NULL && frontNode->nextNode != NULL ) {  // Caso nodo inicial:
+         anterior = NULL;                             // "n-1" = NULL.
+         
+         siguiente = frontNode->nextNode;             // "n+2".
+         
+         backNode->nextNode = siguiente;              // Next de "n" apunta a "n+2".
+         
+         frontNode->prevNode = anterior;              // Prev de "n+1" apunta a NULL.
+         
+         backNode->prevNode = frontNode;              // Prev de "n" apunta a "n+1".
+         
+         frontNode->nextNode = backNode;              // Next de "n+1" apunta a "n".
+         
+         siguiente->prevNode = backNode;              // Prev de "n+2" apunta a "n".
+      } else if ( backNode->prevNode != NULL && frontNode->nextNode == NULL ) {  // Caso nodo final:
+         anterior = backNode->prevNode;               // "n-1".
+         
+         siguiente = NULL;                            // "n+2" = NULL.
+         
+         backNode->nextNode = siguiente;              // Next de "n" apunta a NULL.
+         
+         frontNode->prevNode = anterior;              // Prev de "n+1" apunta a "n-1".
+         
+         backNode->prevNode = frontNode;              // Prev de "n" apunta a "n+1".
+         
+         frontNode->nextNode = backNode;              // Next de "n+1" apunta a "n".
+         
+         anterior->nextNode = frontNode;              // Next de "n-1" apunta a "n+1".
       } 
    }
 }
