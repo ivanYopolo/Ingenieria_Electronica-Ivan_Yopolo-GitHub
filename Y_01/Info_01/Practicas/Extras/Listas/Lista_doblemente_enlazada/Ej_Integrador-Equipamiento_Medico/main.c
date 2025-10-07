@@ -27,10 +27,13 @@
 
 #include "./includes/Equipamiento_medico/funciones.h"
 
-/* Comando: clear; gcc -Wall --pedantic-errors main.c \
-            ./includes/Equipamiento_medico/funciones.c \
-            ./includes/GetString_console/getstring-lib.c \
-            ./includes/Manejo_Listas/Doble/lista_doble-lib.c -o prog.bin
+/* # Comando #
+   clear; gcc -Wall --pedantic-errors main.c \
+   ./includes/debugging.c \
+   ./includes/Equipamiento_medico/funciones.c \
+   ./includes/GetString_console/getstring-lib.c \
+   ./includes/Manejo_Listas/Doble/lista_doble-lib.c \
+   -o prog.bin
 */
    
 /*

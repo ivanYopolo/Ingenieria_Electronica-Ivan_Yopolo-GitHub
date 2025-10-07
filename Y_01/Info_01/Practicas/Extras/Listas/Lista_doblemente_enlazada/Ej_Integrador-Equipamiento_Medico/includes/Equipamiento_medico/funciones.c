@@ -60,9 +60,12 @@ int menu() {
    do{
       printf( "\nOpción (0 o negativo para finalizar):\t\t" );
       
+      better_scanf( "%d", &menuSelect );
+      /*
       scanf( "%d", &menuSelect );
       int ch = 0;
       while ( ( ch = getchar() ) != '\n' && ch != EOF );
+      */
    }while ( menuSelect > 7 );
    
    return menuSelect;
@@ -111,10 +114,12 @@ void get_user_input( Nodo_t **startNode, int sentido, \
       do {
          printf( "* SKU:        \t\t" );
          
+         better_scanf( "%d", &sku );
+         /*
          scanf( "%d", &sku );
          int ch = 0;
          while ( ( ch = getchar() ) != '\n' && ch != EOF );
-         
+         */
          if ( sku < 1 )
             printf( "[ SKU INVÁLIDO. INTENTE NUEVAMENTE. ]\n\n" );
       } while ( sku < 1 );
@@ -143,10 +148,12 @@ void get_user_input( Nodo_t **startNode, int sentido, \
       do {
          printf( "* Cantidad en stock:\t" );
          
+         better_scanf( "%d", &stock );
+         /*
          scanf( "%d", &stock );
          int ch = 0;
          while ( ( ch = getchar() ) != '\n' && ch != EOF );
-         
+         */
          if ( stock < 1 )
             printf( "[ STOCK INVÁLIDO. INTENTE NUEVAMENTE. ]\n\n" );
       } while ( stock < 1 );
@@ -163,10 +170,12 @@ void get_user_input( Nodo_t **startNode, int sentido, \
          }
          printf( "Opción:\t" );
          
+         better_scanf( "%d", &especialidadTemp );
+         /*
          scanf( "%d", &especialidadTemp );
          int ch = 0;
          while ( ( ch = getchar() ) != '\n' && ch != EOF );
-         
+         */
          if ( especialidadTemp < 1 || especialidadTemp > 7 )
             printf( "[ ESPECIALIDAD INVÁLIDA. INTENTE NUEVAMENTE. ]\n\n" );
       } while ( especialidadTemp < 1 || especialidadTemp > 7 );
@@ -178,10 +187,12 @@ void get_user_input( Nodo_t **startNode, int sentido, \
       // # PRECIO #
       do {
          printf( "* Precio:   \t\t" );
+         better_scanf( "%f", &precioTemp );
+         /*
          scanf( "%f", &precioTemp );
          int ch = 0;
          while ( ( ch = getchar() ) != '\n' && ch != EOF );
-         
+         */
          if ( precioTemp < 0 )
             printf( "[ PRECIO INVÁLIDO. INTENTE NUEVAMENTE. ]\n\n" );
       } while ( precioTemp < 0 );
@@ -215,10 +226,12 @@ void get_user_input( Nodo_t **startNode, int sentido, \
                  "1) Sí.\n" 
                  "0) No.\n" 
                  "Opción: \t" );
+         better_scanf( "%d", &allowInput );
+         /*
          scanf( "%d", &allowInput );
          int ch = 0;
          while ( ( ch = getchar() ) != '\n' && ch != EOF );
-         
+         */
          if ( allowInput != 1 && allowInput != 0 )
             printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n\n" );
       } while ( allowInput != 1 && allowInput != 0 );
@@ -232,7 +245,7 @@ void get_user_input( Nodo_t **startNode, int sentido, \
 
 
 //------------------------------------------------------------------------
-// modificar_datos
+// modificar_datos - [ REV ]
 //------------------------------------------------------------------------
 /* Modifica datos de un nodo de la lista.
  */
@@ -250,27 +263,25 @@ void modificar_datos( Nodo_t **startNode ) {
    Nodo_t   *nodoAux = NULL;     // Auxiliar por SKU repetido.
 
    do {  // Repetición de función.
-      // Selección de SKU (nodo):
-      do {
+      do {  // Selección de SKU (nodo).
          printf( "Ingrese el SKU del producto a modificar:\t" );
          
+         better_scanf( "%d", &skuTemp );
+         /*
          scanf( "%d", &skuTemp );
          int ch = 0;
          while ( ( ch = getchar() ) != '\n' && ch != EOF );
+         */
          
          if ( skuTemp < 1 ) {
             printf( "\n[ ERROR: SKU INVÁLIDO. INGRESE NUEVAMENTE EL DATO. ]\n\n" );
          } else {
             // Busca el nodo con el SKU pedido.
-            nodoX = *startNode;
-            while ( nodoX != NULL && nodoX->dato.sku != skuTemp ) {
-               nodoX = nodoX->nextNode;
-            }  // Terminó de registrar la lista y encontró el sku o no está en la lista.
-            
-            if ( nodoX == NULL ) // No encontró el SKU.
+            if ( ( nodoX = is_SKU_repeated( *startNode, skuTemp ) ) == NULL ) // No encontró el SKU.
                printf( "\n[ NO EXISTE EQUIPAMIENTO CON EL SKU PEDIDO. INTENTE NUEVAMENTE. ]\n\n" );
          }
-      } while ( skuTemp < 1 && nodoX == NULL );   // Registró un SKU válido.
+      } while ( skuTemp < 1 || nodoX == NULL );   
+      // Registró un SKU válido.
 
       do {
          printf( "Elija el dato a modificar:\n"
@@ -280,11 +291,13 @@ void modificar_datos( Nodo_t **startNode ) {
                  "4) Cantidad.\n" 
                  "5) Especialidad.\n" 
                  "6) Precio.\n" );
-         
+
+         better_scanf( "%d", &seleccion );
+         /*
          scanf( "%d", &seleccion );
          int ch = 0;
          while ( ( ch = getchar() ) != '\n' && ch != EOF );
-         
+         */
          if ( seleccion < 1 || seleccion > 6 )
             printf( "\n[ SELECCIÓN INVÁLIDA. ]\n\n" );
       } while ( seleccion < 1 || seleccion > 6 );
@@ -294,10 +307,12 @@ void modificar_datos( Nodo_t **startNode ) {
             do {
                printf( "Ingrese el nuevo SKU:\t" );
                
+               better_scanf( "%d", &skuTemp );
+               /*
                scanf( "%d", &(skuTemp) );
                int ch = 0;
                while ( ( ch = getchar() ) != '\n' && ch != EOF );
-               
+               */
                if ( skuTemp < 1 )
                   printf( "\n[ SKU INVÁLIDO. INGRESE NUEVAMENTE EL DATO. ]\n\n" );
             } while ( skuTemp < 1 );   // Obtuvo el SKU correctamente.
@@ -323,10 +338,12 @@ void modificar_datos( Nodo_t **startNode ) {
                              "2) Dato guardado en el archivo.\n" 
                              "Opción:   \t" );
                      
+                     better_scanf( "%d", &mergeSelection );
+                     /*
                      scanf( "%d", &mergeSelection );
                      int ch = 0;
                      while ( ( ch = getchar() ) != '\n' && ch != EOF );
-                     
+                     */
                      if ( mergeSelection != 1 && mergeSelection != 2 )
                         printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n\n" );
                      
@@ -362,10 +379,12 @@ void modificar_datos( Nodo_t **startNode ) {
             do {
                printf( "# Ingrese la nueva cantidad/stock #\n" );
                
+               better_scanf( "%d", &cantidadTemp );
+               /*
                scanf( "%d", &cantidadTemp );
                int ch = 0;
                while ( ( ch = getchar() ) != '\n' && ch != EOF );
-               
+               */
                if ( cantidadTemp < 1 )
                   printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n\n" );
                
@@ -378,10 +397,12 @@ void modificar_datos( Nodo_t **startNode ) {
             do {
                printf( "# Ingrese la nueva especialidad #\n" );
                
+               better_scanf( "%d", &especialidadTemp );
+               /*
                scanf( "%d", &especialidadTemp );
                int ch = 0;
                while ( ( ch = getchar() ) != '\n' && ch != EOF );
-               
+               */
                if ( especialidadTemp < 1 || especialidadTemp > 7 )
                   printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n\n" );
                
@@ -394,10 +415,12 @@ void modificar_datos( Nodo_t **startNode ) {
             do {
                printf( "# Ingrese el nuevo precio #\n" );
                
+               better_scanf( "%f", &precioTemp );
+               /*
                scanf( "%f", &precioTemp );
                int ch = 0;
                while ( ( ch = getchar() ) != '\n' && ch != EOF );
-               
+               */
                if ( precioTemp < 1 )
                   printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n\n" );
                
@@ -413,10 +436,12 @@ void modificar_datos( Nodo_t **startNode ) {
                  "0) No.\n"
                  "Opción: \t" );
          
+         better_scanf( "%d", &allowMod );
+         /*
          scanf( "%d", &allowMod );
          int ch = 0;
          while ( ( ch = getchar() ) != '\n' && ch != EOF );
-         
+         */
          if ( allowMod != 0 && allowMod != 1 )
             printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n\n" );
          
@@ -426,7 +451,7 @@ void modificar_datos( Nodo_t **startNode ) {
 
 
 //------------------------------------------------------------------------
-// eliminate_data
+// eliminate_data - [ REV ]
 //------------------------------------------------------------------------
 /* Elimina datos (nodo) de la lista.
  */
@@ -439,10 +464,12 @@ void eliminate_data( Nodo_t *startNode ) {
       do {
          printf( "Ingrese el SKU del producto a eliminar:\t" );
             
+         better_scanf( "%d", &skuTemp );
+         /*
          scanf( "%d", &skuTemp );
          int ch = 0;
          while ( ( ch = getchar() ) != '\n' && ch != EOF );
-         
+         */
          if ( skuTemp < 0 )
             printf( "\n[ ERROR: SKU INVÁLIDO. INGRÉSELO NUEVAMENTE. ]\n\n" );
       } while ( skuTemp < 0 );
@@ -459,10 +486,12 @@ void eliminate_data( Nodo_t *startNode ) {
                  "0) No.\n" 
                  "Opción.\t" );
          
+         better_scanf( "%d", &allowEliminate );
+         /*
          scanf( "%d", &allowEliminate );
          int ch = 0;
          while ( ( ch = getchar() ) != '\n' && ch != EOF );
-         
+         */
          if ( allowEliminate != 1 && allowEliminate != 0 )
             printf( "\n[ ERROR: OPCIÓN INVÁLIDA. ]\n" );
       } while ( allowEliminate != 1 && allowEliminate != 0 );
@@ -523,63 +552,18 @@ void show_data( Dato_t datoX ) {
 
 
 //--------------------------------------------------------------------------
-// show_data_log - [ DONE ]
-//--------------------------------------------------------------------------
-/* Muestra datos de un nodo en pantalla.
- */
-void show_data_log( Dato_t datoX, int fdLog ) {
-   dprintf( fdLog, "\n#########################################################\n" );
-   dprintf( fdLog, "* SKU:               \t%d\n", datoX.sku );
-   dprintf( fdLog, "* Descripción:       \t%s\n", datoX.descripcion );
-   dprintf( fdLog, "* Detalles:          \t%s\n", datoX.detalles );
-   dprintf( fdLog, "* Cantidad en stock: \t%d\n", datoX.cantidad );
-   dprintf( fdLog, "* Precio:            \t%.02f\n", datoX.precio );
-   
-   switch ( datoX.especialidad ){   // Imprimir según especialidad.
-      case CARDIOLOGIA:
-         dprintf( fdLog, "* Especialidad:      \tCARDIOLOGÍA.\n" );
-      break;
-      
-      case CLINICA:
-         dprintf( fdLog, "* Especialidad:      \tCLÍNICA.\n" );
-      break;
-      
-      case GASTROENTEROLOGIA:
-         dprintf( fdLog, "* Especialidad:      \tGASTROENTEROLOGÍA.\n" );
-      break;
-      
-      case CIRUGIA:
-         dprintf( fdLog, "* Especialidad:      \tCIRUGÍA.\n" );
-      break;
-      
-      case DERMATOLOGIA:
-         dprintf( fdLog, "* Especialidad:      \tDERMATOLOGÍA.\n" );
-      break;
-      
-      case OFTALMOLOGIA:
-         dprintf( fdLog, "* Especialidad:      \tOFTALMOLOGÍA.\n" );
-      break;
-      
-      case TRAUMATOLOGIA:
-         dprintf( fdLog, "* Especialidad:      \tTRAUMATOLOGÍA.\n" );
-      break;
-   }
-}
-
-
-//--------------------------------------------------------------------------
 // close_session - [ DONE ]
 //--------------------------------------------------------------------------
 /* Libera memoria de la lista entera y cierra el archivo.
  */
 void close_session( Nodo_t *startNode, char *fechaStr ) {
    Nodo_t *nodoX = startNode;
-   Nodo_t *nodoAux = NULL;
+   Nodo_t *nodoAnt = NULL;
    
    while ( nodoX != NULL ) {
-      nodoAux = nodoX;
+      nodoAnt = nodoX;
       nodoX = nodoX->nextNode;
-      free( nodoAux );
+      free( nodoAnt );
    }
    
    if ( fechaStr != NULL )
@@ -588,7 +572,7 @@ void close_session( Nodo_t *startNode, char *fechaStr ) {
 
 
 //--------------------------------------------------------------------------
-// is_SKU_repeated - [ REV ]
+// is_SKU_repeated - [ DONE ]
 //--------------------------------------------------------------------------
 /* Checkea si se repite el SKU de un dato nuevo en toda la lista.
  *
@@ -654,7 +638,7 @@ char * obtener_fecha() {
 // ########################################################
 
 //------------------------------------------------------------------------
-// cargar_datos - [ ERR ] (segmentation fault)
+// cargar_datos - [ DONE ]
 //------------------------------------------------------------------------
 /* Carga datos de un archivo de base de datos en la lista.
  * NO SOBREESCRIBE LISTA, sinó que agrega nodos a la misma.
@@ -754,10 +738,12 @@ char * cargar_datos( Nodo_t **startNode, int sentido, \
                              "2) Dato guardado en el archivo.\n" 
                              "Opción:   \t" );
                      
+                     better_scanf( "%d", &mergeSelection );
+                     /*
                      scanf( "%d", &mergeSelection );
                      int ch = 0;
                      while ( ( ch = getchar() ) != '\n' && ch != EOF );
-                     
+                     */
                      if ( mergeSelection != 1 && mergeSelection != 2 )
                         printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n\n" );
                      
@@ -825,7 +811,7 @@ char * cargar_datos( Nodo_t **startNode, int sentido, \
 
 
 //------------------------------------------------------------------------
-// altas_bajas_modificaciones (ABM) - [ INP ]
+// altas_bajas_modificaciones (ABM) - [ REV ]
 //------------------------------------------------------------------------
 /* Agrega (alta), saca (baja) o modifica datos de la lista.
  * # ordenamiento[2] #
@@ -836,9 +822,10 @@ void altas_bajas_modificaciones( Nodo_t **startNode, int sentido, \
                                  int (*criterio_orden)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) ) {
    int seleccion = 1;
    
-   if ( startNode == NULL ) { // Caso inicial.
+   if ( *startNode == NULL ) { // Caso particular: lista vacía.
       // Pasa el criterio para ordenar según diga el main().
       get_user_input( startNode, sentido, (criterio_orden) );
+      
    } else { // Caso general.
       do {  // Repetición de la función.
          do {
@@ -847,10 +834,12 @@ void altas_bajas_modificaciones( Nodo_t **startNode, int sentido, \
                     "2) Sacar datos del inventario.\n"
                     "3) Modificar datos del inventario.\n"
                     "Opción:\t\t" );
+            better_scanf( "%d", &seleccion );
+            /*
             scanf( "%d", &seleccion );
             int ch = 0;
             while ( ( ch = getchar() ) != '\n' && ch != EOF );
-            
+            */
             if ( seleccion < 1 || seleccion > 3 )
                printf( "\n[ ERROR: OPCIÓN INVÁLIDA. ]\n\n" );
          } while ( seleccion < 1 || seleccion > 3 );
@@ -874,20 +863,25 @@ void altas_bajas_modificaciones( Nodo_t **startNode, int sentido, \
                     "1) Sí.\n"
                     "0) No.\n"
                     "Opción: \t" );
+            
+            better_scanf( "%d", &seleccion );
+            /*
             scanf( "%d", &seleccion );
             int ch = 0;
             while ( ( ch = getchar() ) != '\n' && ch != EOF );
-            
+            */
             if ( seleccion != 1 && seleccion != 0 )
                printf( "\n[ ERROR: OPCIÓN INVÁLIDA. ]\n\n" );
+            
          } while ( seleccion != 1 && seleccion != 0 );
-      } while ( seleccion == 1 );
-   }
-}
+         
+      } while ( seleccion == 1 );   // Sale si no quiere continuar haciendo ABM.
+   }  // Termina caso general.
+}  // Termina función.
 
 
 //------------------------------------------------------------------------
-// guardar_datos - [ REV ]
+// guardar_datos - [ DONE ]
 //------------------------------------------------------------------------
 /* Guarda la lista entera en un archivo de base de datos.
  * Usar '.dat'.
@@ -943,10 +937,12 @@ void guardar_datos( Nodo_t *startNode, char *fechaAct ) {
                           "2) No.\n" 
                           "Opción:\t" );
                   
+                  better_scanf( "%d", &sobreescribir );
+                  /*
                   scanf( "%d", &sobreescribir );
                   int ch = 0;
                   while ( ( ch = getchar() ) != '\n' && ch != EOF );
-                  
+                  */
                   if ( sobreescribir != 1 && sobreescribir != 2 )
                      printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n" );
                } while ( sobreescribir != 1 && sobreescribir != 2 );
@@ -1014,7 +1010,7 @@ void guardar_datos( Nodo_t *startNode, char *fechaAct ) {
 
 
 //------------------------------------------------------------------------
-// ordenar_datos - [ DONE ]
+// ordenar_datos - [ ERR ] (Segmentation Fault).
 //------------------------------------------------------------------------
 /* Ordenar los elementos por:
    * Especialidad.
@@ -1041,10 +1037,12 @@ void ordenar_datos( Nodo_t **startNode, int ordenamiento[], \
          "2) Precio.\n" 
          "3) Disponibilidad (stock).\n" );
          
+         better_scanf( "%d", &datoDeOrdenamiento );
+         /*
          scanf( "%d", &datoDeOrdenamiento );
          int ch = 0;
          while ( ( ch = getchar() ) != '\n' && ch != EOF );
-         
+         */
          if ( datoDeOrdenamiento > 3 || datoDeOrdenamiento < 1 )
             printf( "\n[ ERROR: INGRESE UNA OPCIÓN VÁLIDA. ]\n" );
       } while ( datoDeOrdenamiento > 3 || datoDeOrdenamiento < 1 );
@@ -1058,10 +1056,12 @@ void ordenar_datos( Nodo_t **startNode, int ordenamiento[], \
          "1) Ascendente.\n" 
          "2) Descendente.\n" );
          
+         better_scanf( "%d", &sentidoOrdenamiento );
+         /*
          scanf( "%d", &sentidoOrdenamiento );
          int ch = 0;
          while ( ( ch = getchar() ) != '\n' && ch != EOF );
-         
+         */
          if ( sentidoOrdenamiento > 2 || sentidoOrdenamiento < 1 )
             printf( "\n[ ERROR: INGRESE UNA OPCIÓN VÁLIDA. ]\n" );
       } while ( sentidoOrdenamiento > 2 || sentidoOrdenamiento < 1 );
@@ -1100,10 +1100,13 @@ void mostrar_datos( Nodo_t *startNode, const int mode ) {
                     "   6) Oftalmología.\n"
                     "   7) Traumatología.\n" 
                     "Opción:\t" );
+            
+            better_scanf( "%d", &especialidadInput );
+            /*
             scanf( "%d", &especialidadInput );
             int ch = 0;
             while ( ( ch = getchar() ) != '\n' && ch != EOF );
-            
+            */ 
             if ( especialidadInput < 1 || especialidadInput > 7 )
                printf( "\n[ ERROR: ELIJA UNA ESPECIALIDAD VÁLIDA. ]\n\n" );
          } while ( especialidadInput < 1 || especialidadInput > 7 );

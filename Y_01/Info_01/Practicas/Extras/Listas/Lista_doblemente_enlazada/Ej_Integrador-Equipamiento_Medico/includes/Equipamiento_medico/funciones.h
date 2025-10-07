@@ -19,21 +19,12 @@
    // ########################################################
    // Defines
    // ########################################################
-
    #define ORD_ESP            1
    #define ORD_PRE            2
    #define ORD_DISP           3
    
    #define ORD_ASC            1
    #define ORD_DES            2
-
-   #define CARDIOLOGIA        1
-   #define CLINICA            2
-   #define GASTROENTEROLOGIA  3
-   #define CIRUGIA            4
-   #define DERMATOLOGIA       5
-   #define OFTALMOLOGIA       6
-   #define TRAUMATOLOGIA      7
    
 
    // ########################################################
@@ -45,24 +36,24 @@
    
    // ### Manejo de nodos ###
    void     get_user_input( Nodo_t **startNode, int sentido, \
-                           int (*criterio_orden)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) );     // [ REV ] - Ver inserción ordenada.
+                           int (*criterio_orden)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) );        // [ DONE ]
    void     modificar_datos( Nodo_t **startNode );                                     // [ REV ]
    void     eliminate_data( Nodo_t *startNode );                                       // [ REV ] 
    
    // ### Especiales ###
    void     show_data( Dato_t datoX );                                                 // [ DONE ]
    void     close_session( Nodo_t *startNode, char *fechaStr );                        // [ DONE ]
-   Nodo_t * is_SKU_repeated( Nodo_t *startNode, int skuInput );                        // [ REV ]
+   Nodo_t * is_SKU_repeated( Nodo_t *startNode, int skuInput );                        // [ DONE ]
    char   * obtener_fecha();                                                           // [ DONE ]
    
    // ### Opciones Menú ###
    char   * cargar_datos( Nodo_t **startNode, int sentido, \
-                           int (*criterio_orden)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) );     // [ REV ]
+                           int (*criterio_orden)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) );        // [ DONE ]
    void     altas_bajas_modificaciones( Nodo_t **startNode, int sentido, \
-                           int (*criterio_orden)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) );     // [ REV ]
-   void     guardar_datos( Nodo_t *startNode, char *fechaAct );                        // [ REV ]
+                           int (*criterio_orden)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) );        // [ REV ]
+   void     guardar_datos( Nodo_t *startNode, char *fechaAct );                        // [ DONE ]
    void     ordenar_datos( Nodo_t **startNode, int ordenamiento[], \
-                           int (*ordenamiento_lista[3])( Nodo_t *backNode, Nodo_t *frontNode, int orden ) );   // [ DONE ]
+                           int (*ordenamiento_lista[3])( Nodo_t *backNode, Nodo_t *frontNode, int orden ) );   // [ ERR ]
    void     mostrar_datos( Nodo_t *startNode, const int mode );                        // [ DONE ]
    char   * mostrar_fecha( char *fechaTemp );                                          // [ DONE ]
    

@@ -11,5 +11,7 @@
 	#include <ctype.h>
 	#include <string.h>	
    
+   #include "./Equipamiento_medico/struct_datos.h"
+   
    void show_data_log( Dato_t datoX, int fdLog );  // [ DONE ]
 #endif

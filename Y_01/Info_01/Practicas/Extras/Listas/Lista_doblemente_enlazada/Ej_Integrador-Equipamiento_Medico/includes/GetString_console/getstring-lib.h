@@ -17,5 +17,6 @@
    // ########################################################
    char   * write_str_d();
    void     write_str( char *string, int tamString );
+   void     better_scanf( char *parameters, void *buffer );
 #endif
 

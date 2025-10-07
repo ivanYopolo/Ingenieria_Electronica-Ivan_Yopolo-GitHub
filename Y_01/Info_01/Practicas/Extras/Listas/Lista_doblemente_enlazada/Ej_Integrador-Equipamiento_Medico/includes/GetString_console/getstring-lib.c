@@ -58,3 +58,13 @@ void write_str( char *string, int tamString ) {
 }
 
 
+//--------------------------------------------------------------------------
+// better_scanf
+//--------------------------------------------------------------------------
+/* "scanf()" con un buffer limpio para "fgets()".
+ */
+void better_scanf( char *parameters, void *buffer ) {
+   scanf( parameters, buffer );
+   int ch = 0;
+   while ( ( ch = getchar() ) != '\n' && ch != EOF );
+}

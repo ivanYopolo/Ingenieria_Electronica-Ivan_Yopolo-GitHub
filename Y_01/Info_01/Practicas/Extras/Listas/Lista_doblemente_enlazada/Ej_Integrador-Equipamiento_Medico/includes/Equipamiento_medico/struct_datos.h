@@ -7,6 +7,14 @@
    #define TAM_DATE           11
    #define TAM_DESC           20
    #define TAM_DET            200
+   
+   #define CARDIOLOGIA        1
+   #define CLINICA            2
+   #define GASTROENTEROLOGIA  3
+   #define CIRUGIA            4
+   #define DERMATOLOGIA       5
+   #define OFTALMOLOGIA       6
+   #define TRAUMATOLOGIA      7
 
    // ########################################################
    // Dato_t
