@@ -108,7 +108,7 @@ void get_user_input( Nodo_t **startNode, int sentido, \
    
       dprintf( fdLog, "### Creando dato... ###\n" );
       
-      printf( "Ingrese los datos del producto en forma ordenada:\n" );
+      printf( "# Ingrese los datos del producto en forma ordenada #\n\n" );
       
       
       // # SKU #
@@ -170,7 +170,7 @@ void get_user_input( Nodo_t **startNode, int sentido, \
          for ( int i = CARDIOLOGIA; i < TRAUMATOLOGIA + 1; i++ ) {
             printf( "   %d) %s.\n", i + 1, especialidadStr[i] );
          }
-         printf( "Opción:\t" );
+         printf( "* Opción:   \t" );
          
          better_scanf( "%d", &especialidadTemp );
          
@@ -223,9 +223,9 @@ void get_user_input( Nodo_t **startNode, int sentido, \
       
       do {
          printf( "# ¿Desea continuar registrando equipamiento? #\n"
-                 "1) Sí.\n" 
-                 "0) No.\n" 
-                 "Opción: \t" );
+                 "   1) Sí.\n" 
+                 "   0) No.\n" 
+                 "* Opción: \t" );
          better_scanf( "%d", &allowInput );
          
          if ( allowInput != 1 && allowInput != 0 )
@@ -262,7 +262,8 @@ void modificar_datos( Nodo_t **startNode ) {
 
    do {  // Repetición de función.
       do {  // Selección de SKU (nodo).
-         printf( "Ingrese el SKU del producto a modificar:\t" );
+         printf( "# Ingrese el SKU del producto a modificar #\n"
+                 "* SKU:   \t" );
          
          better_scanf( "%d", &skuTemp );
          
@@ -277,13 +278,14 @@ void modificar_datos( Nodo_t **startNode ) {
       // Registró un SKU válido.
 
       do {
-         printf( "Elija el dato a modificar:\n"
-                 "1) SKU.\n" 
-                 "2) Descripción.\n" 
-                 "3) Detalles.\n" 
-                 "4) Cantidad.\n" 
-                 "5) Especialidad.\n" 
-                 "6) Precio.\n" );
+         printf( "# Elija el dato a modificar #\n"
+                 "   1) SKU.\n" 
+                 "   2) Descripción.\n" 
+                 "   3) Detalles.\n" 
+                 "   4) Cantidad.\n" 
+                 "   5) Especialidad.\n" 
+                 "   6) Precio.\n" 
+                 "* Opción:   \t" );
 
          better_scanf( "%d", &seleccion );
          
@@ -319,9 +321,9 @@ void modificar_datos( Nodo_t **startNode ) {
                   
                   do {
                      printf( "# Elija el dato a conservar #\n" 
-                             "1) Dato elegido a modificar.\n" 
-                             "2) Dato guardado en el archivo.\n" 
-                             "Opción:   \t" );
+                             "   1) Dato elegido a modificar.\n" 
+                             "   2) Dato guardado en el archivo.\n" 
+                             "* Opción:   \t" );
                      
                      better_scanf( "%d", &mergeSelection );
                      
@@ -337,7 +339,8 @@ void modificar_datos( Nodo_t **startNode ) {
          break;
          
          case 2:  // Descripción.
-            printf( "# Ingrese la nueva descripción #\n" );
+            printf( "# Ingrese la nueva descripción #\n"
+                    "* Descripción:   \t" );
             
             descripcionTemp[0] = '\0';
             
@@ -347,7 +350,8 @@ void modificar_datos( Nodo_t **startNode ) {
          break;
          
          case 3:  // Detalles.
-            printf( "# Ingrese los nuevos detalles #\n" );
+            printf( "# Ingrese los nuevos detalles #\n"
+                    "* Detalles:      \t" );
             
             detallesTemp[0] = '\0';
             
@@ -358,7 +362,8 @@ void modificar_datos( Nodo_t **startNode ) {
          
          case 4:  // Cantidad.
             do {
-               printf( "# Ingrese la nueva cantidad/stock #\n" );
+               printf( "# Ingrese la nueva cantidad/stock #\n" 
+                       "* Stock:      \t" );
                
                better_scanf( "%d", &cantidadTemp );
                
@@ -372,7 +377,8 @@ void modificar_datos( Nodo_t **startNode ) {
          
          case 5:  // Especialidad.
             do {
-               printf( "# Ingrese la nueva especialidad #\n" );
+               printf( "# Ingrese la nueva especialidad #\n" 
+                       "* Especialidad:\t" );
                
                for ( int i = CARDIOLOGIA; i < TRAUMATOLOGIA + 1; i++ ) {
                   printf( "   %d) %s.\n", i + 1, especialidadStr[i] );
@@ -391,7 +397,8 @@ void modificar_datos( Nodo_t **startNode ) {
          
          case 6:  // Precio.
             do {
-               printf( "# Ingrese el nuevo precio #\n" );
+               printf( "# Ingrese el nuevo precio #\n" 
+                       "* Precio:     \t" );
                
                better_scanf( "%f", &precioTemp );
                
@@ -406,9 +413,9 @@ void modificar_datos( Nodo_t **startNode ) {
       
       do {
          printf( "# ¿Desea continuar modificando datos? #\n" 
-                 "1) Sí.\n"
-                 "0) No.\n"
-                 "Opción: \t" );
+                 "   1) Sí.\n"
+                 "   0) No.\n"
+                 "* Opción: \t" );
          
          better_scanf( "%d", &allowMod );
          
@@ -451,9 +458,9 @@ void eliminate_data( Nodo_t **startNode ) {
       
       do {
          printf( "# ¿Desea continuar eliminando equipamiento? #\n" 
-                 "1) Sí.\n" 
-                 "0) No.\n" 
-                 "Opción.\t" );
+                 "   1) Sí.\n" 
+                 "   0) No.\n" 
+                 "* Opción:   \t" );
          
          better_scanf( "%d", &allowEliminate );
          
@@ -634,8 +641,9 @@ char * cargar_datos( Nodo_t **startNode, int sentido, \
    
    // ### Abre el archivo a extraer datos ###
    do {
-      printf( "Ingrese el nombre del archivo a cargar información.\n"
-              "Utilizar solamente archivos con extensión \'.dat\':\n" );
+      printf( "# Ingrese el nombre del archivo a cargar información. #\n"
+              "# Utilice solamente archivos con extensión \'.dat\'.    #\n" 
+              "* Archivo:   \t" );
       
       nombreArchivo = write_str_d();
       
@@ -694,17 +702,19 @@ char * cargar_datos( Nodo_t **startNode, int sentido, \
             } else {                      // Caso general.
                
                if ( ( nodoX = is_SKU_repeated( *startNode, datoInput.sku ) ) != NULL ) { // SKU repetido.
-                  printf( "Se detectaron los siguientes datos con el mismo SKU:\n" );
+                  // # LOG #
                   dprintf( fdLog, "[ SKUs REPE. ]\n" );
+                  
+                  printf( "[ Se detectaron los siguientes datos con el mismo SKU: ]\n" );
                
                   show_data( nodoX->dato );
                   show_data( datoInput );
                   
                   do {
                      printf( "# Elija el dato a conservar #\n" 
-                             "1) Dato ya creado en el programa.\n" 
-                             "2) Dato guardado en el archivo.\n" 
-                             "Opción:   \t" );
+                             "   1) Dato ya creado en el programa.\n" 
+                             "   2) Dato guardado en el archivo.\n" 
+                             "* Opción:   \t" );
                      
                      better_scanf( "%d", &mergeSelection );
                      
@@ -775,11 +785,11 @@ void altas_bajas_modificaciones( Nodo_t **startNode, int sentido, \
    } else { // Caso general.
       do {  // Repetición de la función.
          do {
-            printf( "### Elija una opción ###\n" 
-                    "1) Agregar datos al inventario.\n"
-                    "2) Sacar datos del inventario.\n"
-                    "3) Modificar datos del inventario.\n"
-                    "Opción:\t\t" );
+            printf( "# Elija una opción #\n" 
+                    "   1) Agregar datos al inventario.\n"
+                    "   2) Sacar datos del inventario.\n"
+                    "   3) Modificar datos del inventario.\n"
+                    "* Opción:   \t" );
             better_scanf( "%d", &seleccion );
             
             if ( seleccion < 1 || seleccion > 3 )
@@ -801,10 +811,10 @@ void altas_bajas_modificaciones( Nodo_t **startNode, int sentido, \
          }
          
          do {
-            printf( "### ¿Desea continuar agregando, quitando o modificando datos? ###\n" 
-                    "1) Sí.\n"
-                    "0) No.\n"
-                    "Opción: \t" );
+            printf( "# ¿Desea continuar agregando, quitando o modificando datos? #\n" 
+                    "   1) Sí.\n"
+                    "   0) No.\n"
+                    "* Opción:   \t" );
             
             better_scanf( "%d", &seleccion );
             
@@ -842,8 +852,10 @@ void guardar_datos( Nodo_t *startNode, char *fechaAct ) {
    
    if ( startNode != NULL ) {
       do{   // Verificar nombre del archivo por input del usuario.
-         printf( "Elija un nombre para el archivo a guardar los datos + .dat:\t" );
+         printf( "# Elija un nombre para el archivo a guardar los datos + .dat #\n" 
+                 "* Archivo:   \t" );
          nombreArchivo = write_str_d();
+         printf( "\n" );
          
          // # LOG #
          dprintf( fdLog, "* Nombre obtenido\t %s \n", nombreArchivo );
@@ -864,23 +876,18 @@ void guardar_datos( Nodo_t *startNode, char *fechaAct ) {
             dprintf( fdLog, "* Ruta:\t\t%s \n", rutaArchivo );
             
             if ( ( fdData = open( rutaArchivo, O_RDONLY ) ) > 1 ) {   // Repetido
-            // if ( ( fdData = open( nombreArchivo, O_RDONLY ) ) > 1 ) {   // Repetido
                
                // # LOG #
                dprintf( fdLog, "* Sobreescritura\t=\t" );
                
                do {
-                  printf( "\nExiste un archivo con el mismo nombre, ¿desea sobreescibirlo?\n"
-                          "1) Sí.\n"
-                          "2) No.\n" 
-                          "Opción:\t" );
+                  printf( "Existe un archivo con el mismo nombre, ¿desea sobreescibirlo?\n"
+                          "   1) Sí.\n"
+                          "   2) No.\n" 
+                          "* Opción:   \t" );
                   
                   better_scanf( "%d", &sobreescribir );
-                  /*
-                  scanf( "%d", &sobreescribir );
-                  int ch = 0;
-                  while ( ( ch = getchar() ) != '\n' && ch != EOF );
-                  */
+                  
                   if ( sobreescribir != 1 && sobreescribir != 2 )
                      printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n" );
                } while ( sobreescribir != 1 && sobreescribir != 2 );
@@ -969,12 +976,11 @@ void ordenar_datos( Nodo_t **startNode, int ordenamiento[], \
    } else {
       // # Tipo de dato a ordenar #
       do{
-         printf( 
-         "\n# Seleccione con qué dato ordenar el inventario #\n" 
-         "1) Especialidad.\n" 
-         "2) Precio.\n" 
-         "3) Disponibilidad (stock).\n" 
-         "Opción:\t" );
+         printf( "\n# Seleccione con qué dato ordenar el inventario #\n" 
+                 "   1) Especialidad.\n" 
+                 "   2) Precio.\n" 
+                 "   3) Disponibilidad (stock).\n" 
+                 "* Opción:   \t" );
          
          better_scanf( "%d", &datoDeOrdenamiento );
          
@@ -987,11 +993,10 @@ void ordenar_datos( Nodo_t **startNode, int ordenamiento[], \
       
       // # Sentido de ordenamiento #
       do{
-         printf( 
-         "\n# Seleccione el sentido del ordenamiento #\n" 
-         "1) Ascendente.\n" 
-         "2) Descendente.\n" 
-         "Opción:\t" );
+         printf( "\n# Seleccione el sentido del ordenamiento #\n" 
+                 "   1) Ascendente.\n" 
+                 "   2) Descendente.\n" 
+                 "* Opción:   \t" );
          
          better_scanf( "%d", &sentidoOrdenamiento );
          
@@ -1024,7 +1029,7 @@ void mostrar_datos( Nodo_t *startNode, const int mode ) {
    } else {
       if ( mode != 0 ) {
          do{
-            printf( "Elija la especialidad a mostrar:\n"
+            printf( "# Elija la especialidad a mostrar #\n"
                     "   1) Cardiología.\n"
                     "   2) Clínica.\n"
                     "   3) Gastroenterología.\n"
@@ -1032,7 +1037,7 @@ void mostrar_datos( Nodo_t *startNode, const int mode ) {
                     "   5) Dermatología.\n"
                     "   6) Oftalmología.\n"
                     "   7) Traumatología.\n" 
-                    "Opción:\t" );
+                    "* Opción:   \t" );
             
             better_scanf( "%d", &especialidadInput );
             
@@ -1073,12 +1078,12 @@ char * mostrar_fecha( char *fechaTemp ) {
    
    if ( fechaTemp != NULL ) { 
       // Fecha ya creada.
-      printf( "La fecha es:\t[ %s ].\n\n", fechaTemp );
+      printf( "### La fecha es:\t[ %s ]. ###\n\n", fechaTemp );
       fechaNuevaStr = fechaTemp;
    } else { 
       // Obtiene fecha actual.
       fechaNuevaStr = obtener_fecha();
-      printf( "La nueva fecha es:\t[ %s ].\n\n", fechaNuevaStr );
+      printf( "### La nueva fecha es:\t[ %s ]. ###\n\n", fechaNuevaStr );
    }
    
    return fechaNuevaStr;
