@@ -98,7 +98,6 @@ void get_user_input( Nodo_t **startNode, int sentido, \
    char     especialidadStr[7][20] = 
             { "Cardiología", "Clínica", "Gastroenterología", "Cirugía", "Dermatología", "Oftalmología", "Traumatología" };
    Nodo_t   *newNode = NULL;
-   // Nodo_t   *nodoX = NULL;
    
    // # LOG #
    int      fdLog = 0;
@@ -110,6 +109,7 @@ void get_user_input( Nodo_t **startNode, int sentido, \
       dprintf( fdLog, "### Creando dato... ###\n" );
       
       printf( "Ingrese los datos del producto en forma ordenada:\n" );
+      
       
       // # SKU #
       do {
@@ -125,7 +125,9 @@ void get_user_input( Nodo_t **startNode, int sentido, \
             sku = 0;
          }
       } while ( sku < 1 );
+      
       newData.sku = sku;
+      
       // # LOG #
       dprintf( fdLog, "* SKU:        \t\t%d\n", sku );
       
@@ -155,7 +157,9 @@ void get_user_input( Nodo_t **startNode, int sentido, \
          if ( stock < 1 )
             printf( "[ STOCK INVÁLIDO. INTENTE NUEVAMENTE. ]\n\n" );
       } while ( stock < 1 );
+      
       newData.cantidad = stock;
+      
       // # LOG #
       dprintf( fdLog, "* Stock:   \t\t%d\n", stock );
       
@@ -163,7 +167,7 @@ void get_user_input( Nodo_t **startNode, int sentido, \
       // # Especialidad #
       do {
          printf( "* # Especialidad #\n" );
-         for ( int i = 0; i < TRAUMATOLOGIA; i++ ) {
+         for ( int i = CARDIOLOGIA; i < TRAUMATOLOGIA + 1; i++ ) {
             printf( "   %d) %s.\n", i + 1, especialidadStr[i] );
          }
          printf( "Opción:\t" );
@@ -173,7 +177,10 @@ void get_user_input( Nodo_t **startNode, int sentido, \
          if ( especialidadTemp < 1 || especialidadTemp > 7 )
             printf( "[ ESPECIALIDAD INVÁLIDA. INTENTE NUEVAMENTE. ]\n\n" );
       } while ( especialidadTemp < 1 || especialidadTemp > 7 );
+      
+      especialidadTemp--;  // Ajuste a rango de arrays (empieza en 0).
       newData.especialidad = especialidadTemp;
+      
       // # LOG #
       dprintf( fdLog, "* Especialidad:   \t%s\n", especialidadStr[especialidadTemp - 1] );
       
@@ -186,7 +193,9 @@ void get_user_input( Nodo_t **startNode, int sentido, \
          if ( precioTemp < 0 )
             printf( "[ PRECIO INVÁLIDO. INTENTE NUEVAMENTE. ]\n\n" );
       } while ( precioTemp < 0 );
+      
       newData.precio = precioTemp;
+      
       // # LOG #
       dprintf( fdLog, "* Precio:   \t\t%.02f\n", precioTemp );
       
@@ -205,11 +214,12 @@ void get_user_input( Nodo_t **startNode, int sentido, \
          ordered_insertion( startNode, newNode, sentido, criterio_orden );
       }
       
+      printf( "\n" );
+      
+      
       // # LOG #
       dprintf( fdLog, "[ Nodo creado:\t%p ]\n", (void *) newNode );
       dprintf( fdLog, "--------------------------------------------------------------\n" );
-      
-      printf( "\n" );
       
       do {
          printf( "# ¿Desea continuar registrando equipamiento? #\n"
@@ -243,6 +253,8 @@ void modificar_datos( Nodo_t **startNode ) {
    char     detallesTemp[ TAM_DET ];
    int      cantidadTemp = 1;
    int      especialidadTemp = 1;
+   char     especialidadStr[7][20] = 
+            { "Cardiología", "Clínica", "Gastroenterología", "Cirugía", "Dermatología", "Oftalmología", "Traumatología" };
    float    precioTemp = 1;
    int      mergeSelection = 1;
    Nodo_t   *nodoX = NULL;       // Nodo-cursor para buscarlo por SKU.
@@ -253,11 +265,6 @@ void modificar_datos( Nodo_t **startNode ) {
          printf( "Ingrese el SKU del producto a modificar:\t" );
          
          better_scanf( "%d", &skuTemp );
-         /*
-         scanf( "%d", &skuTemp );
-         int ch = 0;
-         while ( ( ch = getchar() ) != '\n' && ch != EOF );
-         */
          
          if ( skuTemp < 1 ) {
             printf( "\n[ ERROR: SKU INVÁLIDO. INGRESE NUEVAMENTE EL DATO. ]\n\n" );
@@ -279,11 +286,7 @@ void modificar_datos( Nodo_t **startNode ) {
                  "6) Precio.\n" );
 
          better_scanf( "%d", &seleccion );
-         /*
-         scanf( "%d", &seleccion );
-         int ch = 0;
-         while ( ( ch = getchar() ) != '\n' && ch != EOF );
-         */
+         
          if ( seleccion < 1 || seleccion > 6 )
             printf( "\n[ SELECCIÓN INVÁLIDA. ]\n\n" );
       } while ( seleccion < 1 || seleccion > 6 );
@@ -294,11 +297,7 @@ void modificar_datos( Nodo_t **startNode ) {
                printf( "Ingrese el nuevo SKU:\t" );
                
                better_scanf( "%d", &skuTemp );
-               /*
-               scanf( "%d", &(skuTemp) );
-               int ch = 0;
-               while ( ( ch = getchar() ) != '\n' && ch != EOF );
-               */
+               
                if ( skuTemp < 1 )
                   printf( "\n[ SKU INVÁLIDO. INGRESE NUEVAMENTE EL DATO. ]\n\n" );
             } while ( skuTemp < 1 );   // Obtuvo el SKU correctamente.
@@ -325,11 +324,7 @@ void modificar_datos( Nodo_t **startNode ) {
                              "Opción:   \t" );
                      
                      better_scanf( "%d", &mergeSelection );
-                     /*
-                     scanf( "%d", &mergeSelection );
-                     int ch = 0;
-                     while ( ( ch = getchar() ) != '\n' && ch != EOF );
-                     */
+                     
                      if ( mergeSelection != 1 && mergeSelection != 2 )
                         printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n\n" );
                      
@@ -344,7 +339,7 @@ void modificar_datos( Nodo_t **startNode ) {
          case 2:  // Descripción.
             printf( "# Ingrese la nueva descripción #\n" );
             
-            descripcionTemp[ 0 ] = '\0';
+            descripcionTemp[0] = '\0';
             
             write_str( descripcionTemp, TAM_DESC );
             
@@ -354,7 +349,7 @@ void modificar_datos( Nodo_t **startNode ) {
          case 3:  // Detalles.
             printf( "# Ingrese los nuevos detalles #\n" );
             
-            detallesTemp[ 0 ] = '\0';
+            detallesTemp[0] = '\0';
             
             write_str( detallesTemp, TAM_DET );
 
@@ -366,11 +361,7 @@ void modificar_datos( Nodo_t **startNode ) {
                printf( "# Ingrese la nueva cantidad/stock #\n" );
                
                better_scanf( "%d", &cantidadTemp );
-               /*
-               scanf( "%d", &cantidadTemp );
-               int ch = 0;
-               while ( ( ch = getchar() ) != '\n' && ch != EOF );
-               */
+               
                if ( cantidadTemp < 1 )
                   printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n\n" );
                
@@ -383,16 +374,17 @@ void modificar_datos( Nodo_t **startNode ) {
             do {
                printf( "# Ingrese la nueva especialidad #\n" );
                
+               for ( int i = CARDIOLOGIA; i < TRAUMATOLOGIA + 1; i++ ) {
+                  printf( "   %d) %s.\n", i + 1, especialidadStr[i] );
+               }
                better_scanf( "%d", &especialidadTemp );
-               /*
-               scanf( "%d", &especialidadTemp );
-               int ch = 0;
-               while ( ( ch = getchar() ) != '\n' && ch != EOF );
-               */
+               
                if ( especialidadTemp < 1 || especialidadTemp > 7 )
                   printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n\n" );
                
             } while ( especialidadTemp < 1 || especialidadTemp > 7 );
+            
+            especialidadTemp--;
             
             nodoX->dato.especialidad = especialidadTemp;
          break;
@@ -402,11 +394,7 @@ void modificar_datos( Nodo_t **startNode ) {
                printf( "# Ingrese el nuevo precio #\n" );
                
                better_scanf( "%f", &precioTemp );
-               /*
-               scanf( "%f", &precioTemp );
-               int ch = 0;
-               while ( ( ch = getchar() ) != '\n' && ch != EOF );
-               */
+               
                if ( precioTemp < 1 )
                   printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n\n" );
                
@@ -423,11 +411,7 @@ void modificar_datos( Nodo_t **startNode ) {
                  "Opción: \t" );
          
          better_scanf( "%d", &allowMod );
-         /*
-         scanf( "%d", &allowMod );
-         int ch = 0;
-         while ( ( ch = getchar() ) != '\n' && ch != EOF );
-         */
+         
          if ( allowMod != 0 && allowMod != 1 )
             printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n\n" );
          
@@ -663,7 +647,8 @@ char * cargar_datos( Nodo_t **startNode, int sentido, \
          strcpy( rutaArchivo, directorio );
          strcpy( rutaArchivo + strlen( directorio ), nombreArchivo );
          rutaArchivo[strlen( nombreArchivo ) + strlen( directorio )] = '\0';
-         fdData = open( rutaArchivo, O_RDONLY );
+         
+         fdData = open( rutaArchivo, O_RDONLY );   // Abre el archivo.
          
          if ( fdData < 1 ) {
             printf( "\n[ ERROR: NOMBRE DE ARCHIVO INVÁLIDO. ]\n\n" );
@@ -680,10 +665,9 @@ char * cargar_datos( Nodo_t **startNode, int sentido, \
    dprintf( fdLog, "* Ruta:\t\t%s\n", rutaArchivo );
    
    // ### Carga datos a la lista ###
-   
    bytesRd = read( fdData, fechaTemp, TAM_DATE );   // Lee la fecha.
    
-   if ( bytesRd == TAM_DATE ) {
+   if ( bytesRd == TAM_DATE ) {  // Primeros Bytes correspondientes a la fecha de la base de datos.
    
       // # LOG #
       dprintf( fdLog, "* Fecha:\t%s\n", fechaTemp );
@@ -698,19 +682,22 @@ char * cargar_datos( Nodo_t **startNode, int sentido, \
             // # LOG #
             dprintf( fdLog, "[ DATO LEÍDO. ]\n" );
             show_data_log( datoInput, fdLog );
-            
-            // Checkea los SKUs.
-            // # LOG #
             dprintf( fdLog, "[ Checkeando SKUs... ]\n" );
             
-            if ( *startNode != NULL ) {   // Caso general.
+            // Checkea los SKUs.
+            if ( *startNode == NULL ) {   // Caso particular: lista vacía.
+               // # LOG #
+               dprintf( fdLog, "[ Lista vacía. ]\n" );
+               dprintf( fdLog, "[ Creando PRIMER nodo... ]\n" );
+               
+               (*startNode) = create_node( datoInput );     // Agrega un dato a la lista.
+            } else {                      // Caso general.
                
                if ( ( nodoX = is_SKU_repeated( *startNode, datoInput.sku ) ) != NULL ) { // SKU repetido.
                   printf( "Se detectaron los siguientes datos con el mismo SKU:\n" );
                   dprintf( fdLog, "[ SKUs REPE. ]\n" );
                
                   show_data( nodoX->dato );
-                  
                   show_data( datoInput );
                   
                   do {
@@ -732,33 +719,18 @@ char * cargar_datos( Nodo_t **startNode, int sentido, \
                } else { // No se repite el SKU.
                   // # LOG #
                   dprintf( fdLog, "[ SKUs NO repe. ]\n" );
-                  
-                  nodoX = create_node( datoInput );     // Agrega un dato a la lista.
-                  // # LOG #
                   dprintf( fdLog, "[ Creando nodo... ]\n" );
                   
+                  nodoX = create_node( datoInput );     // Agrega un dato a la lista.
                   ordered_insertion( startNode, nodoX, sentido, criterio_orden );
+                  
                   // # LOG #
                   dprintf( fdLog, "[ Insertado ordenadamente de manera exitosa. ]\n" );
-               }
-               
-            } else {          // Lista vacía.
-               // # LOG #
-               dprintf( fdLog, "[ Lista vacía. ]\n" );
-               
-               nodoX = create_node( datoInput );     // Agrega un dato a la lista.
-               // # LOG #
-               dprintf( fdLog, "[ Creando nodo... ]\n" );
-               
-               ordered_insertion( startNode, nodoX, sentido, criterio_orden );
-               // # LOG #
-               dprintf( fdLog, "[ Insertado ordenadamente de manera exitosa. ]\n" );
-            }
-         }
-      } while ( bytesRd == sizeof(Dato_t) );  
-      // Terminó de leer el archivo.
-      // sort_list( startNode, sentido, (criterio_orden) );
-
+               }  // Terminó de checkear repeticiones por SKU.
+            }  // Termina caso general.
+         }  // Se leyó un N° de bytes correspondientes a "Dato_t".
+      } while ( bytesRd == sizeof(Dato_t) );    // Terminó de leer el archivo.
+      
       printf( "\n[ Lectura exitosa. ]\n\n" );
       
       // # LOG #
@@ -835,11 +807,7 @@ void altas_bajas_modificaciones( Nodo_t **startNode, int sentido, \
                     "Opción: \t" );
             
             better_scanf( "%d", &seleccion );
-            /*
-            scanf( "%d", &seleccion );
-            int ch = 0;
-            while ( ( ch = getchar() ) != '\n' && ch != EOF );
-            */
+            
             if ( seleccion != 1 && seleccion != 0 )
                printf( "\n[ ERROR: OPCIÓN INVÁLIDA. ]\n\n" );
             
@@ -1014,8 +982,7 @@ void ordenar_datos( Nodo_t **startNode, int ordenamiento[], \
             printf( "\n[ ERROR: INGRESE UNA OPCIÓN VÁLIDA. ]\n" );
       } while ( datoDeOrdenamiento > 3 || datoDeOrdenamiento < 1 );
       
-      datoDeOrdenamiento--;
-      
+      datoDeOrdenamiento--;      // 0~2.
       ordenamiento[0] = datoDeOrdenamiento;
       
       // # Sentido de ordenamiento #
@@ -1138,10 +1105,18 @@ char * mostrar_fecha( char *fechaTemp ) {
 int orden_especialidad( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) {
    int ordenados = 1;
    
+   // # LOG #
+   int fdLog;
+   fdLog = open( "./log/orden_esp.log", O_CREAT | O_TRUNC | O_WRONLY, 0666 );
+   dprintf( fdLog, "### Nueva comparación por ESPECIALIDAD ###\n" );
+   
    if ( frontNode != NULL && backNode != NULL ) {
       // Indica el SENTIDO del orden (ascendente o descendente).
       switch ( sentido ) {
          case ORD_ASC:
+            // # LOG #
+            dprintf( fdLog, "* Orden ASCENDENTE.\n" );
+            
             if ( backNode->dato.especialidad <= frontNode->dato.especialidad ) {
                ordenados = 1;
             } else {
@@ -1150,6 +1125,9 @@ int orden_especialidad( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) {
          break;
          
          case ORD_DES:
+            // # LOG #
+            dprintf( fdLog, "* Orden DESCENDENTE.\n" );
+            
             if ( backNode->dato.especialidad >= frontNode->dato.especialidad ) {
                ordenados = 1;
             } else {
@@ -1157,7 +1135,21 @@ int orden_especialidad( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) {
             }
          break;
       }
+   } else {
+      // # LOG #
+      dprintf( fdLog, "[ Alguno de los nodos es NULL: ordenados naturalmente. ]\n" );
+      
+      ordenados = 1;
    }
+   
+   // # LOG #
+   if ( ordenados == 1 ) {
+      dprintf( fdLog, "# ORDENADOS #\n" );
+   } else {
+      dprintf( fdLog, "# NO ORDENADOS #\n" );
+   }
+   
+   close( fdLog );
    
    return ordenados;
 }
@@ -1196,6 +1188,8 @@ int orden_precio( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) {
             }
          break;
       }
+   } else {
+      ordenados = 1;
    }
    
    return ordenados;
@@ -1235,6 +1229,8 @@ int orden_disponibilidad( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) {
             }
          break;
       }
+   } else {
+      ordenados = 1;
    }
    
    return ordenados;

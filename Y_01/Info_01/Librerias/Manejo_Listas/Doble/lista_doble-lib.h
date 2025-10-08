@@ -1,4 +1,5 @@
-#ifndef lista_doble
+#ifndef LISTA_DOBLE
+   #define LISTA_DOBLE
    // ########################################################
    // Includes
    // ########################################################
@@ -6,17 +7,14 @@
 	#include <stdlib.h>
 	#include <string.h>	
 	#include <ctype.h>
-   #include "datos.h"   // Donde se alojan las estructuras tipo Dato_t.
+   #include "datos.h"            // Donde se alojan las estructuras tipo Dato_t.
+   #include "../../debugging.h"  // Para hacer debugging de las funciones.
    
    // ########################################################
    // Defines
    // ########################################################
    #define ORD_ASC            1
    #define ORD_DES            2
-   
-   #define TAM_DATE           11
-   #define TAM_DESC           20
-   #define TAM_DET            200
 
    // ########################################################
    // Funciones
@@ -27,7 +25,7 @@
    void     push_node( Nodo_t *bottom, Nodo_t *ham, Nodo_t *top );
    void     ordered_insertion( Nodo_t **startNode, Nodo_t *newNode, int sentido, \
                               int (*criterio_ordenamiento)( Nodo_t *backNode, Nodo_t *frontNode, int orden ) );
-   Nodo_t * create_node( Dato_t *datoX );
+   Nodo_t * create_node( Dato_t datoX );
    void     merge_data( Dato_t *datoInput, Dato_t newData, int mergeSelection ); 
    
    // ### Ordenamiento ###

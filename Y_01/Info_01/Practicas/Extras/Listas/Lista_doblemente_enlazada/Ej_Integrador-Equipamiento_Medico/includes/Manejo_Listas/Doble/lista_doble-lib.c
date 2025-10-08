@@ -103,6 +103,7 @@ void push_node( Nodo_t *bottom, Nodo_t *ham, Nodo_t *top ) {
       }
    }
    
+   // # LOG #
    close( fdLog );
 }
 
@@ -113,8 +114,9 @@ void push_node( Nodo_t *bottom, Nodo_t *ham, Nodo_t *top ) {
 /* Revisa la lista entera e inserta el nuevo nodo de forma ordenada.
  * Con el puntero a función, checkea el punto exacto donde meter el nodo.
  *
- * Con (criterio_ordenamiento), checkea si "nodoX" va antes de "newNode" según
- * el criterio de ordenamiento deseado.
+ * Con (criterio_ordenamiento), checkea si "anterior" va antes de "newNode" 
+ * y este antes de "posterior" según el criterio de ordenamiento deseado
+ * (puntero a función).
  */
 void ordered_insertion( Nodo_t **startNode, Nodo_t *newNode, int sentido, \
                         int (*criterio_ordenamiento)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) ) {
@@ -137,18 +139,34 @@ void ordered_insertion( Nodo_t **startNode, Nodo_t *newNode, int sentido, \
          posterior = *startNode;
          
          while ( posterior != NULL && ordenados == 0 ) {  // Compara el orden entre "posterior", el siguiente y "newNode".
+            // # LOG #
+            dprintf( fdLog, "[ Comparando si el nuevo nodo va entre " );
+            
+            if ( anterior != NULL && posterior != NULL )
+               dprintf( fdLog, "%d y %d ]\n", anterior->dato.sku, posterior->dato.sku );
+            
+            if ( anterior == NULL && posterior != NULL )
+               dprintf( fdLog, "NULL y %d ]\n", posterior->dato.sku );
+            
+            if ( anterior != NULL && posterior == NULL )
+               dprintf( fdLog, "%d y NULL ]\n", anterior->dato.sku );
+            
             // Orden ASC:                    anterior >= newNode >= posterior.
             // Orden DES:                    anterior <= newNode <= posterior.
-            if ( ( (*criterio_ordenamiento)( anterior, newNode, sentido ) == 1 ) && \
-                 ( (*criterio_ordenamiento)( newNode, posterior, sentido ) == 1 ) ) {  // Caso al diome.
+            if ( ( (*criterio_ordenamiento)( anterior, newNode, sentido ) ) && \
+                 ( (*criterio_ordenamiento)( newNode, posterior, sentido ) ) ) {  // Caso al diome.
                // "newNode" va entre "anterior" y "posterior".
                ordenados = 1;
                
-            } else if ( ordenados != 1 ) {
+            } 
+            
+            if ( ordenados != 1 ) {
                // Sigue escaneando la lista. 
                anterior = posterior;
                posterior = posterior->nextNode;
             }
+            
+            dprintf( fdLog, "[ Ordenados:\t\t%d ]\n\n", ordenados );
          }  // "posterior" llega a NULL si NO está la lista ordenada con el nuevo dato.
          
          push_node( anterior, newNode, posterior );
@@ -156,13 +174,13 @@ void ordered_insertion( Nodo_t **startNode, Nodo_t *newNode, int sentido, \
          
          // # LOG #
          if ( anterior != NULL && posterior != NULL )
-            dprintf( fdLog, "\n* Nuevo dato (%d) va entre %d y %d.\n", newNode->dato.sku, anterior->dato.sku, posterior->dato.sku );
+            dprintf( fdLog, "### Nuevo dato (%d) va entre %d y %d. ###\n\n", newNode->dato.sku, anterior->dato.sku, posterior->dato.sku );
          
          if ( anterior == NULL && posterior != NULL )
-            dprintf( fdLog, "\n* Nuevo dato (%d) va entre NULL y %d.\n", newNode->dato.sku, posterior->dato.sku );
+            dprintf( fdLog, "### Nuevo dato (%d) va entre NULL y %d. ###\n\n", newNode->dato.sku, posterior->dato.sku );
          
          if ( anterior != NULL && posterior == NULL )
-            dprintf( fdLog, "\n* Nuevo dato (%d) va entre %d y NULL.\n", newNode->dato.sku, anterior->dato.sku );
+            dprintf( fdLog, "### Nuevo dato (%d) va entre %d y NULL. ###\n\n", newNode->dato.sku, anterior->dato.sku );
          
          
          while ( (*startNode)->prevNode != NULL ) {  // Corrección del START NODE.
@@ -172,7 +190,7 @@ void ordered_insertion( Nodo_t **startNode, Nodo_t *newNode, int sentido, \
       
       // # LOG #
       nodoCursor = *startNode;
-      dprintf( fdLog, "\n------------------------------------------------------------------------\n"
+      dprintf( fdLog, "------------------------------------------------------------------------\n"
                       "Nueva inserción ordenada...\n"
                       "------------------------------------------------------------------------\n" );
       
