@@ -1035,14 +1035,12 @@ void mostrar_datos( Nodo_t *startNode, const int mode ) {
                     "Opción:\t" );
             
             better_scanf( "%d", &especialidadInput );
-            /*
-            scanf( "%d", &especialidadInput );
-            int ch = 0;
-            while ( ( ch = getchar() ) != '\n' && ch != EOF );
-            */ 
+            
             if ( especialidadInput < 1 || especialidadInput > 7 )
                printf( "\n[ ERROR: ELIJA UNA ESPECIALIDAD VÁLIDA. ]\n\n" );
          } while ( especialidadInput < 1 || especialidadInput > 7 );
+         
+         especialidadInput--;
       }
       
       // Escaneo de la lista por la especialidad pedida.
