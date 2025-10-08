@@ -1,24 +1,15 @@
 #include "lista_doble-lib.h"
 #include "../../debugging.h"
-/*
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>	
-#include <ctype.h>
-*/
+
+
 // ########################################################
 // ### Manejo de nodos ###
 // ########################################################
 
-
 //------------------------------------------------------------------------
 // pop_node - [ DONE ]
 //------------------------------------------------------------------------
-/* Saca un nodo de la lista (FIFO).
+/* Saca un nodo de la lista.
  * Verifiicar casos:
     * Nodo del diome.
     * Nodo final.
@@ -76,25 +67,43 @@ void pop_node( Nodo_t *nodeX ) {
  * top: nodo posterior al nuevo a agregar.
  */
 void push_node( Nodo_t *bottom, Nodo_t *ham, Nodo_t *top ) {
+   // # LOG #
+   int      fdLog;
+   fdLog = open( "./log/push_node.log", O_WRONLY | O_CREAT | O_TRUNC, 0666 );
+   dprintf( fdLog, "------------------------------------------------------------------------\n" );
+   dprintf( fdLog, "# Pushing... #\n" );
+   dprintf( fdLog, "------------------------------------------------------------------------\n\n" );
    
-   // if ( ham != NULL && !( bottom != NULL && top != NULL ) ) {
    if ( ham != NULL ) {
       ham->prevNode = bottom;
       ham->nextNode = top;
       
-      if ( bottom == NULL && top != NULL ) {       // Caso nodo al inicio.
+      if ( bottom == NULL && top != NULL ) {          // Caso nodo al inicio.
          top->prevNode = ham;
+         
+         // # LOG #
+         dprintf( fdLog, "[ Nodo inicial. ]\n" );
+         
       } else {
-      
-         if ( bottom != NULL && top == NULL ) {    // Caso nodo al final.
+         if ( bottom != NULL && top == NULL ) {       // Caso nodo al final.
             bottom->nextNode = ham;
             
-         } else {       // Caso nodo al diome.
-            bottom->nextNode = ham;
-            top->prevNode = ham;
+            // # LOG #
+            dprintf( fdLog, "[ Nodo final. ]\n" );
+            
+         } else {
+            if ( bottom != NULL && top != NULL ) {    // Caso nodo al diome.
+               bottom->nextNode = ham;
+               top->prevNode = ham;
+               
+               // # LOG #
+               dprintf( fdLog, "[ Nodo al diome. ]\n" );
+            }
          }
       }
    }
+   
+   close( fdLog );
 }
 
 
@@ -104,14 +113,14 @@ void push_node( Nodo_t *bottom, Nodo_t *ham, Nodo_t *top ) {
 /* Revisa la lista entera e inserta el nuevo nodo de forma ordenada.
  * Con el puntero a función, checkea el punto exacto donde meter el nodo.
  *
- * Con (*criterio_ordenamiento), checkea si "nodoX" va antes de "newNode" según
+ * Con (criterio_ordenamiento), checkea si "nodoX" va antes de "newNode" según
  * el criterio de ordenamiento deseado.
  */
 void ordered_insertion( Nodo_t **startNode, Nodo_t *newNode, int sentido, \
                         int (*criterio_ordenamiento)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) ) {
-   Nodo_t   *nodoX = NULL;
    Nodo_t   *anterior = NULL;
-   int      ordenados = 1;
+   Nodo_t   *posterior = NULL;
+   int      ordenados = 0;
    
    // # LOG #
    Nodo_t   *nodoCursor = NULL;
@@ -119,37 +128,47 @@ void ordered_insertion( Nodo_t **startNode, Nodo_t *newNode, int sentido, \
    fdLog = open( "./log/ordered_insertion.log", O_WRONLY | O_CREAT | O_TRUNC, 0666 );
    
    if ( newNode != NULL ) {
-   
-      nodoX = *startNode;
-      anterior = nodoX;
-      while ( nodoX != NULL && ordenados == 1 ) {  // Compara el orden entre "nodoX" y "newNode".
-         if ( ( (*criterio_ordenamiento)( nodoX, newNode, sentido ) == 0 ) && \
-              ( (*criterio_ordenamiento)( newNode, nodoX->nextNode, sentido ) == 0 ) ) {
-            ordenados = 0;
-         } else {    // Sigue escaneando la lista.
-            anterior = nodoX;
-            nodoX = nodoX->nextNode;
-         }
-      }
-      // "nodoX" llega a NULL si está la lista ordenada.
       
-      if ( !ordenados ) {  // NO están ordenados.
-      
-         if ( *startNode != NULL ) { // Caso general.
-            push_node( anterior, newNode, nodoX );   
-            
-         } else { // Caso particular: lista vacía.
-            *startNode = newNode; 
+      if ( *startNode == NULL ) {   // Caso particular: lista vacía.
+         *startNode = newNode;
+      } else {    // Inserta el nodo donde corresponda.
+         
+         anterior = NULL;
+         posterior = *startNode;
+         
+         while ( posterior != NULL && ordenados == 0 ) {  // Compara el orden entre "posterior", el siguiente y "newNode".
+            // Orden ASC:                    anterior >= newNode >= posterior.
+            // Orden DES:                    anterior <= newNode <= posterior.
+            if ( ( (*criterio_ordenamiento)( anterior, newNode, sentido ) == 1 ) && \
+                 ( (*criterio_ordenamiento)( newNode, posterior, sentido ) == 1 ) ) {  // Caso al diome.
+               // "newNode" va entre "anterior" y "posterior".
+               ordenados = 1;
+               
+            } else if ( ordenados != 1 ) {
+               // Sigue escaneando la lista. 
+               anterior = posterior;
+               posterior = posterior->nextNode;
+            }
+         }  // "posterior" llega a NULL si NO está la lista ordenada con el nuevo dato.
+         
+         push_node( anterior, newNode, posterior );
+         
+         
+         // # LOG #
+         if ( anterior != NULL && posterior != NULL )
+            dprintf( fdLog, "\n* Nuevo dato (%d) va entre %d y %d.\n", newNode->dato.sku, anterior->dato.sku, posterior->dato.sku );
+         
+         if ( anterior == NULL && posterior != NULL )
+            dprintf( fdLog, "\n* Nuevo dato (%d) va entre NULL y %d.\n", newNode->dato.sku, posterior->dato.sku );
+         
+         if ( anterior != NULL && posterior == NULL )
+            dprintf( fdLog, "\n* Nuevo dato (%d) va entre %d y NULL.\n", newNode->dato.sku, anterior->dato.sku );
+         
+         
+         while ( (*startNode)->prevNode != NULL ) {  // Corrección del START NODE.
+            (*startNode) = (*startNode)->prevNode;
          }
-      } else { // Están "ordenados", el nuevo nodo va al final.
-         if ( *startNode != NULL ) {
-            push_node( anterior, newNode, NULL );
-         }
-      }
-      
-      while ( (*startNode)->prevNode != NULL ) {  // Corrección del START NODE.
-         (*startNode) = (*startNode)->prevNode;
-      }
+      }  // Terminó con lista no vacía.
       
       // # LOG #
       nodoCursor = *startNode;
@@ -169,7 +188,7 @@ void ordered_insertion( Nodo_t **startNode, Nodo_t *newNode, int sentido, \
 //------------------------------------------------------------------------
 // create_node - [ DONE ]
 //------------------------------------------------------------------------
-/* Crea un nodo en la lista (FIFO).
+/* Crea un nodo en la lista.
  */
 Nodo_t * create_node( Dato_t datoX ) {
    // # LOG #
@@ -200,7 +219,7 @@ Nodo_t * create_node( Dato_t datoX ) {
 //------------------------------------------------------------------------
 // merge_data - [ DONE ]
 //------------------------------------------------------------------------
-/* Junta datos repetidos (SKUs) en un mismo nodo.
+/* Junta datos repetidos en un mismo nodo.
  *
  * # Merge Selection #
    1) Conserva datoInput.
@@ -248,25 +267,34 @@ void merge_data( Dato_t *datoInput, Dato_t newData, int mergeSelection ) {
  */
 void sort_list( Nodo_t **startNode, int sentido, \
                int (*criterio_ordenamiento)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) ) {
+   Nodo_t   *nodoX = NULL;
    
-   Nodo_t *nodoX = NULL;
-   
-   // # Verifica si la lista está ordenada o no #
+   // # LOG #
+   int      fdLog;
+   fdLog = open( "./log/sort_list.log", O_WRONLY | O_TRUNC | O_CREAT, 0666 );
    
    // Pasada externa para la lista entera.
    // Pasa la dirección de la función requerida.
    while ( ( nodoX = is_list_ordered( *startNode, sentido, (criterio_ordenamiento) ) ) != NULL ) {   
-      // nodoX = *startNode;
       
       // Pasada interna por nodo.
       while ( nodoX != NULL && nodoX->nextNode != NULL ) {
+      
+         // # LOG #
+         dprintf( fdLog, "\n------------------------------------------------------------------------\n" );
+         dprintf( fdLog, "Nueva pasada de ordenamiento...\n" );
+         dprintf( fdLog, "------------------------------------------------------------------------\n\n" );
+         if ( nodoX->nextNode != NULL )
+            dprintf( fdLog, "[ Comparando productos: \t%d && %d ]\n", nodoX->dato.sku, (nodoX->nextNode)->dato.sku );
          
          // Compara el nodo actual y el siguiente, si están ordenados.
          if ( (*criterio_ordenamiento)( nodoX, nodoX->nextNode, sentido ) == 0 ) {
+            // # LOG #
+            dprintf( fdLog, "### CAMBIO ###\n\n" );
          
+            // Para evitar perder el inicio de la lista, antes de cambiarlos de lugar, 
+            // se guarda el "nuevo inicio".
             if ( nodoX == *startNode ) {  // Caso particular: principio de la lista.
-               // Para evitar perder el inicio de la lista, antes de cambiarlos de lugar, 
-               // se guarda el "nuevo inicio".
                *startNode = nodoX->nextNode;
             }
             swap_nodes( nodoX, nodoX->nextNode );
@@ -276,6 +304,8 @@ void sort_list( Nodo_t **startNode, int sentido, \
          }
       }  // Terminó de pasar por toda la lista, comparando 1 nodo en particular.
    }  // Terminó de pasar por toda la lista, con todos los nodos.
+   
+   close( fdLog );
 }
 
 

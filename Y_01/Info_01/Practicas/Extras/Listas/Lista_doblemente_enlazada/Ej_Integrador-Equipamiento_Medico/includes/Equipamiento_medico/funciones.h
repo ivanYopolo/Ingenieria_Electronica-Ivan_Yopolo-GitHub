@@ -38,7 +38,7 @@
    void     get_user_input( Nodo_t **startNode, int sentido, \
                            int (*criterio_orden)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) );        // [ DONE ]
    void     modificar_datos( Nodo_t **startNode );                                     // [ REV ]
-   void     eliminate_data( Nodo_t *startNode );                                       // [ REV ] 
+   void     eliminate_data( Nodo_t **startNode );                                      // [ REV ] 
    
    // ### Especiales ###
    void     show_data( Dato_t datoX );                                                 // [ DONE ]

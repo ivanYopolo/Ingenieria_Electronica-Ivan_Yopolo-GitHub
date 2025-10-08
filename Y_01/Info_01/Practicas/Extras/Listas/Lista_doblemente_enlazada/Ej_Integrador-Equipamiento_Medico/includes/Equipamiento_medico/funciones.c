@@ -98,6 +98,7 @@ void get_user_input( Nodo_t **startNode, int sentido, \
    char     especialidadStr[7][20] = 
             { "Cardiología", "Clínica", "Gastroenterología", "Cirugía", "Dermatología", "Oftalmología", "Traumatología" };
    Nodo_t   *newNode = NULL;
+   // Nodo_t   *nodoX = NULL;
    
    // # LOG #
    int      fdLog = 0;
@@ -115,13 +116,14 @@ void get_user_input( Nodo_t **startNode, int sentido, \
          printf( "* SKU:        \t\t" );
          
          better_scanf( "%d", &sku );
-         /*
-         scanf( "%d", &sku );
-         int ch = 0;
-         while ( ( ch = getchar() ) != '\n' && ch != EOF );
-         */
+         
          if ( sku < 1 )
             printf( "[ SKU INVÁLIDO. INTENTE NUEVAMENTE. ]\n\n" );
+         
+         if ( is_SKU_repeated( *startNode, sku ) != NULL ) {   // Se repite el SKU.
+            printf( "[ SKU REPETIDO. INTENTE NUEVAMENTE. ]\n\n" );
+            sku = 0;
+         }
       } while ( sku < 1 );
       newData.sku = sku;
       // # LOG #
@@ -149,11 +151,7 @@ void get_user_input( Nodo_t **startNode, int sentido, \
          printf( "* Cantidad en stock:\t" );
          
          better_scanf( "%d", &stock );
-         /*
-         scanf( "%d", &stock );
-         int ch = 0;
-         while ( ( ch = getchar() ) != '\n' && ch != EOF );
-         */
+         
          if ( stock < 1 )
             printf( "[ STOCK INVÁLIDO. INTENTE NUEVAMENTE. ]\n\n" );
       } while ( stock < 1 );
@@ -171,11 +169,7 @@ void get_user_input( Nodo_t **startNode, int sentido, \
          printf( "Opción:\t" );
          
          better_scanf( "%d", &especialidadTemp );
-         /*
-         scanf( "%d", &especialidadTemp );
-         int ch = 0;
-         while ( ( ch = getchar() ) != '\n' && ch != EOF );
-         */
+         
          if ( especialidadTemp < 1 || especialidadTemp > 7 )
             printf( "[ ESPECIALIDAD INVÁLIDA. INTENTE NUEVAMENTE. ]\n\n" );
       } while ( especialidadTemp < 1 || especialidadTemp > 7 );
@@ -188,11 +182,7 @@ void get_user_input( Nodo_t **startNode, int sentido, \
       do {
          printf( "* Precio:   \t\t" );
          better_scanf( "%f", &precioTemp );
-         /*
-         scanf( "%f", &precioTemp );
-         int ch = 0;
-         while ( ( ch = getchar() ) != '\n' && ch != EOF );
-         */
+         
          if ( precioTemp < 0 )
             printf( "[ PRECIO INVÁLIDO. INTENTE NUEVAMENTE. ]\n\n" );
       } while ( precioTemp < 0 );
@@ -227,11 +217,7 @@ void get_user_input( Nodo_t **startNode, int sentido, \
                  "0) No.\n" 
                  "Opción: \t" );
          better_scanf( "%d", &allowInput );
-         /*
-         scanf( "%d", &allowInput );
-         int ch = 0;
-         while ( ( ch = getchar() ) != '\n' && ch != EOF );
-         */
+         
          if ( allowInput != 1 && allowInput != 0 )
             printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n\n" );
       } while ( allowInput != 1 && allowInput != 0 );
@@ -455,26 +441,25 @@ void modificar_datos( Nodo_t **startNode ) {
 //------------------------------------------------------------------------
 /* Elimina datos (nodo) de la lista.
  */
-void eliminate_data( Nodo_t *startNode ) {
+void eliminate_data( Nodo_t **startNode ) {
    int      allowEliminate = 1;
    int      skuTemp = 0;
-   Nodo_t   *nodoX = startNode;
+   Nodo_t   *nodoX = *startNode;
    
    while ( allowEliminate == 1 && nodoX != NULL ) {   // Repetición de función.
       do {
          printf( "Ingrese el SKU del producto a eliminar:\t" );
             
          better_scanf( "%d", &skuTemp );
-         /*
-         scanf( "%d", &skuTemp );
-         int ch = 0;
-         while ( ( ch = getchar() ) != '\n' && ch != EOF );
-         */
+         
          if ( skuTemp < 0 )
             printf( "\n[ ERROR: SKU INVÁLIDO. INGRÉSELO NUEVAMENTE. ]\n\n" );
       } while ( skuTemp < 0 );
       
-      if ( ( nodoX = is_SKU_repeated( startNode, skuTemp ) ) != NULL ) {
+      if ( ( nodoX = is_SKU_repeated( *startNode, skuTemp ) ) != NULL ) {
+         if ( nodoX == *startNode )    // Caso de eliminar inicio de la lista.
+            *startNode = nodoX->nextNode;
+         
          pop_node( nodoX );
       } else {
          printf( "\n[ No se encontró el producto. ]\n\n" );
@@ -487,11 +472,7 @@ void eliminate_data( Nodo_t *startNode ) {
                  "Opción.\t" );
          
          better_scanf( "%d", &allowEliminate );
-         /*
-         scanf( "%d", &allowEliminate );
-         int ch = 0;
-         while ( ( ch = getchar() ) != '\n' && ch != EOF );
-         */
+         
          if ( allowEliminate != 1 && allowEliminate != 0 )
             printf( "\n[ ERROR: OPCIÓN INVÁLIDA. ]\n" );
       } while ( allowEliminate != 1 && allowEliminate != 0 );
@@ -624,7 +605,7 @@ char * obtener_fecha() {
    fechaNueva->tm_mon++;         // Mes empieza en 0.
    fechaNueva->tm_year += 1900;  // Año empieza con 0 relativo en 1900.
    
-   fechaNuevaStr = malloc( TAM_DATE * sizeof(char) );
+   fechaNuevaStr = (char *) malloc( TAM_DATE * sizeof(char) );
    
    sprintf( fechaNuevaStr, "%02d/%02d/%d",
             fechaNueva->tm_mday, fechaNueva->tm_mon, fechaNueva->tm_year );
@@ -638,7 +619,7 @@ char * obtener_fecha() {
 // ########################################################
 
 //------------------------------------------------------------------------
-// cargar_datos - [ DONE ]
+// cargar_datos - [ REV ]
 //------------------------------------------------------------------------
 /* Carga datos de un archivo de base de datos en la lista.
  * NO SOBREESCRIBE LISTA, sinó que agrega nodos a la misma.
@@ -655,7 +636,7 @@ char * cargar_datos( Nodo_t **startNode, int sentido, \
    int      fdData = 2;
    int      bytesRd = 0;
    int      mergeSelection = 0;
-   char     *fechaTemp = malloc( TAM_DATE * sizeof(char) );
+   char     *fechaTemp = (char *) malloc( TAM_DATE * sizeof(char) );
    Nodo_t   *nodoX = NULL;
    char     directorio[8] = "./data/";
    char     *nombreArchivo = NULL;
@@ -678,7 +659,7 @@ char * cargar_datos( Nodo_t **startNode, int sentido, \
          printf( "\n[ ERROR: NOMBRE DE ARCHIVO INVÁLIDO. ]\n\n" );
       } else {
          // Agregarle al nombre la ruta hasta "./data/" (+ 7 B).
-         rutaArchivo = malloc( strlen( nombreArchivo ) + strlen( directorio ) + 1 );
+         rutaArchivo = (char *) malloc( strlen( nombreArchivo ) + strlen( directorio ) + 1 );
          strcpy( rutaArchivo, directorio );
          strcpy( rutaArchivo + strlen( directorio ), nombreArchivo );
          rutaArchivo[strlen( nombreArchivo ) + strlen( directorio )] = '\0';
@@ -739,11 +720,7 @@ char * cargar_datos( Nodo_t **startNode, int sentido, \
                              "Opción:   \t" );
                      
                      better_scanf( "%d", &mergeSelection );
-                     /*
-                     scanf( "%d", &mergeSelection );
-                     int ch = 0;
-                     while ( ( ch = getchar() ) != '\n' && ch != EOF );
-                     */
+                     
                      if ( mergeSelection != 1 && mergeSelection != 2 )
                         printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n\n" );
                      
@@ -760,30 +737,27 @@ char * cargar_datos( Nodo_t **startNode, int sentido, \
                   // # LOG #
                   dprintf( fdLog, "[ Creando nodo... ]\n" );
                   
-                  push_node( *startNode, nodoX, (*startNode)->nextNode );
-                  sort_list( startNode, sentido, (criterio_orden) );
-                  // ordered_insertion( startNode, nodoX, sentido, (criterio_orden) );
+                  ordered_insertion( startNode, nodoX, sentido, criterio_orden );
                   // # LOG #
                   dprintf( fdLog, "[ Insertado ordenadamente de manera exitosa. ]\n" );
                }
                
             } else {          // Lista vacía.
                // # LOG #
-               dprintf( fdLog, "[ SKUs NO repe. ]\n" );
+               dprintf( fdLog, "[ Lista vacía. ]\n" );
                
                nodoX = create_node( datoInput );     // Agrega un dato a la lista.
                // # LOG #
                dprintf( fdLog, "[ Creando nodo... ]\n" );
                
-               push_node( *startNode, nodoX, (*startNode)->nextNode );
-               sort_list( startNode, sentido, (criterio_orden) );
-               // ordered_insertion( startNode, nodoX, sentido, (criterio_orden) );
+               ordered_insertion( startNode, nodoX, sentido, criterio_orden );
                // # LOG #
                dprintf( fdLog, "[ Insertado ordenadamente de manera exitosa. ]\n" );
             }
          }
       } while ( bytesRd == sizeof(Dato_t) );  
       // Terminó de leer el archivo.
+      // sort_list( startNode, sentido, (criterio_orden) );
 
       printf( "\n[ Lectura exitosa. ]\n\n" );
       
@@ -835,11 +809,7 @@ void altas_bajas_modificaciones( Nodo_t **startNode, int sentido, \
                     "3) Modificar datos del inventario.\n"
                     "Opción:\t\t" );
             better_scanf( "%d", &seleccion );
-            /*
-            scanf( "%d", &seleccion );
-            int ch = 0;
-            while ( ( ch = getchar() ) != '\n' && ch != EOF );
-            */
+            
             if ( seleccion < 1 || seleccion > 3 )
                printf( "\n[ ERROR: OPCIÓN INVÁLIDA. ]\n\n" );
          } while ( seleccion < 1 || seleccion > 3 );
@@ -850,7 +820,7 @@ void altas_bajas_modificaciones( Nodo_t **startNode, int sentido, \
             break;
             
             case 2:  // Baja.
-               eliminate_data( *startNode );
+               eliminate_data( startNode );
             break;
             
             case 3:  // Mod.
@@ -917,7 +887,7 @@ void guardar_datos( Nodo_t *startNode, char *fechaAct ) {
             dprintf( fdLog, "* Nombre archivo:\t%s\n", nombreArchivo );
             
             // Agregarle al nombre la ruta hasta "./data/" (+ 7 B).
-            rutaArchivo = malloc( strlen( nombreArchivo ) + strlen( directorio ) + 1 );
+            rutaArchivo = (char *) malloc( strlen( nombreArchivo ) + strlen( directorio ) + 1 );
             strcpy( rutaArchivo, directorio );
             strcpy( rutaArchivo + strlen( directorio ), nombreArchivo );
             rutaArchivo[strlen( nombreArchivo ) + strlen( directorio )] = '\0';
@@ -1010,7 +980,7 @@ void guardar_datos( Nodo_t *startNode, char *fechaAct ) {
 
 
 //------------------------------------------------------------------------
-// ordenar_datos - [ ERR ] (Segmentation Fault).
+// ordenar_datos - [ DONE ]
 //------------------------------------------------------------------------
 /* Ordenar los elementos por:
    * Especialidad.
@@ -1029,39 +999,35 @@ void ordenar_datos( Nodo_t **startNode, int ordenamiento[], \
    if ( *startNode == NULL ) {
       printf( "\n[ ERROR: INVENTARIO VACÍO. ]\n\n" );
    } else {
-      // Tipo de dato a ordenar.
+      // # Tipo de dato a ordenar #
       do{
          printf( 
          "\n# Seleccione con qué dato ordenar el inventario #\n" 
          "1) Especialidad.\n" 
          "2) Precio.\n" 
-         "3) Disponibilidad (stock).\n" );
+         "3) Disponibilidad (stock).\n" 
+         "Opción:\t" );
          
          better_scanf( "%d", &datoDeOrdenamiento );
-         /*
-         scanf( "%d", &datoDeOrdenamiento );
-         int ch = 0;
-         while ( ( ch = getchar() ) != '\n' && ch != EOF );
-         */
+         
          if ( datoDeOrdenamiento > 3 || datoDeOrdenamiento < 1 )
             printf( "\n[ ERROR: INGRESE UNA OPCIÓN VÁLIDA. ]\n" );
       } while ( datoDeOrdenamiento > 3 || datoDeOrdenamiento < 1 );
       
+      datoDeOrdenamiento--;
+      
       ordenamiento[0] = datoDeOrdenamiento;
       
-      // Sentido de ordenamiento.
+      // # Sentido de ordenamiento #
       do{
          printf( 
          "\n# Seleccione el sentido del ordenamiento #\n" 
          "1) Ascendente.\n" 
-         "2) Descendente.\n" );
+         "2) Descendente.\n" 
+         "Opción:\t" );
          
          better_scanf( "%d", &sentidoOrdenamiento );
-         /*
-         scanf( "%d", &sentidoOrdenamiento );
-         int ch = 0;
-         while ( ( ch = getchar() ) != '\n' && ch != EOF );
-         */
+         
          if ( sentidoOrdenamiento > 2 || sentidoOrdenamiento < 1 )
             printf( "\n[ ERROR: INGRESE UNA OPCIÓN VÁLIDA. ]\n" );
       } while ( sentidoOrdenamiento > 2 || sentidoOrdenamiento < 1 );
@@ -1170,27 +1136,27 @@ char * mostrar_fecha( char *fechaTemp ) {
    - 1 si están ordenados.
  */
 int orden_especialidad( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) {
-   int ordenados = 0;
+   int ordenados = 1;
    
    if ( frontNode != NULL && backNode != NULL ) {
       // Indica el SENTIDO del orden (ascendente o descendente).
       switch ( sentido ) {
          case ORD_ASC:
-            if ( backNode->dato.especialidad <= frontNode->dato.especialidad )
+            if ( backNode->dato.especialidad <= frontNode->dato.especialidad ) {
                ordenados = 1;
-            else
+            } else {
                ordenados = 0;
+            }
          break;
          
          case ORD_DES:
-            if ( backNode->dato.especialidad >= frontNode->dato.especialidad )
+            if ( backNode->dato.especialidad >= frontNode->dato.especialidad ) {
                ordenados = 1;
-            else
+            } else {
                ordenados = 0;
+            }
          break;
       }
-   } else {
-      ordenados = 1;
    }
    
    return ordenados;
@@ -1209,27 +1175,27 @@ int orden_especialidad( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) {
    - 1 si están ordenados.
  */
 int orden_precio( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) {
-   int ordenados = 0;
+   int ordenados = 1;
    
    if ( frontNode != NULL && backNode != NULL ) {
       // Indica el SENTIDO del orden (ascendente o descendente).
       switch ( sentido ) {
          case ORD_ASC:
-            if ( backNode->dato.precio <= frontNode->dato.precio )
+            if ( backNode->dato.precio <= frontNode->dato.precio ) {
                ordenados = 1;
-            else
+            } else {
                ordenados = 0;
+            }
          break;
          
          case ORD_DES:
-            if ( backNode->dato.precio >= frontNode->dato.precio )
+            if ( backNode->dato.precio >= frontNode->dato.precio ) {
                ordenados = 1;
-            else
+            } else {
                ordenados = 0;
+            }
          break;
       }
-   } else {
-      ordenados = 1;
    }
    
    return ordenados;
@@ -1248,27 +1214,27 @@ int orden_precio( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) {
    - 1 si están ordenados.
  */
 int orden_disponibilidad( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) {
-   int ordenados = 0;
+   int ordenados = 1;
    
    if ( frontNode != NULL && backNode != NULL ) {
       // Indica el SENTIDO del orden (ascendente o descendente).
       switch ( sentido ) {
          case ORD_ASC:
-            if ( backNode->dato.cantidad <= frontNode->dato.cantidad )
+            if ( backNode->dato.cantidad <= frontNode->dato.cantidad ) {
                ordenados = 1;
-            else
+            } else {
                ordenados = 0;
+            }
          break;
          
          case ORD_DES:
-            if ( backNode->dato.cantidad >= frontNode->dato.cantidad )
+            if ( backNode->dato.cantidad >= frontNode->dato.cantidad ) {
                ordenados = 1;
-            else
+            } else {
                ordenados = 0;
+            }
          break;
       }
-   } else {
-      ordenados = 1;
    }
    
    return ordenados;
