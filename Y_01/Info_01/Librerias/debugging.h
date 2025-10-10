@@ -1,8 +1,5 @@
 #ifndef DEBUGGING
    #define DEBUGGING
-   // ########################################################
-   // Includes
-   // ########################################################
    
    #include <sys/types.h>
 	#include <sys/stat.h>
@@ -14,12 +11,7 @@
 	#include <ctype.h>
 	#include <string.h>	
    
-   // #include "./Equipamiento_medico/struct_datos.h"    // Donde se alojan los structs tipo "Dato_t" y "Nodo_t".
+   #include "./Equipamiento_medico/struct_datos.h"
    
-   
-   // ########################################################
-   // Funciones
-   // ########################################################
-   
-   // void show_data_log( Dato_t datoX, int fdLog );     // Mostrar datos en un archivo ".log".
+   void show_data_log( Dato_t datoX, int fdLog );  // [ DONE ]
 #endif

@@ -1,4 +1,4 @@
-/* # Eco #
+/* ### Eco ###
  * El servidor repite lo que el cliente dice (por el socket).
  * No necesariamente por el kernel.
  * Cierra la conexión cuando se escribe "exit" o "salir".

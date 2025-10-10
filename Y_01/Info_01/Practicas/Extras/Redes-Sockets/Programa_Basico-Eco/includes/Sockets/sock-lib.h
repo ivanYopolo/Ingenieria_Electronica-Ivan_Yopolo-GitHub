@@ -13,8 +13,8 @@
    #include <arpa/inet.h>
    #include <netdb.h>
 
-   #define PORT 3490	   // El puerto donde se conecta, servidor. 
-   #define BACKLOG 10	// Tamaño de la cola de conexiones recibidas.
+   #define PORT      3490	   // El puerto donde se conecta, servidor. 
+   #define BACKLOG   10	      // Tamaño de la cola de conexiones entrantes.
    
    // ### CLIENTE ###
    int	conectar( int, char ** );  

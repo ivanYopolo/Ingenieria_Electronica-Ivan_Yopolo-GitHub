@@ -1,4 +1,4 @@
-/* # Eco #
+/* ### Eco ###
  */
 
 #include "./includes/eco/includes_server.h"
@@ -17,6 +17,7 @@ int main( int argc, char * argv[] ) {
 	int   sockClient;       // File Descriptor para sockets.
 	int   numbytes;         // Contendrá el número de bytes recibidos por "read()".
 	char  buf[MAXDATASIZE]; // Buffer donde se reciben los datos de "read()".
+   char mensajeInicial[] = "Hola como estas servidor";
 
    // Tratamiento de la línea de comandos. 
 	if ( argc < 2 ) {
@@ -27,7 +28,6 @@ int main( int argc, char * argv[] ) {
 	sockClient = conectar( argc, argv );
 
    /** Envio de mensaje hola al servidor*/
-   char mensajeInicial[] = "Hola como estas servidor";
    if ( write( sockClient, mensajeInicial, sizeof (mensajeInicial) ) == -1 ) {
       perror("Error en la escritura del socket");
       exit(1);

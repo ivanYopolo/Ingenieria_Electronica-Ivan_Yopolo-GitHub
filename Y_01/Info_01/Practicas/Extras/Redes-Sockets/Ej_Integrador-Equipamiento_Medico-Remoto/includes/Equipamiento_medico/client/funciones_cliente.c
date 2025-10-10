@@ -29,13 +29,17 @@
  * la fecha de la base de datos en el siguiente formato: DD/MM/YYYY.
  */
  
-/* Comando: gcc -Wall --pedantic-errors main.c \
-            ./includes/Equipamiento_medico/funciones.c \
-            ./includes/GetString_console/getstring-lib.c \
-            ./includes/Manejo_Listas/Doble/lista_doble-lib.c -o prog.bin
+/* # Comando #
+clear; gcc -Wall --pedantic-errors main_client.c \
+./includes/debugging.c \
+./includes/Equipamiento_medico/client/funciones_cliente.c \
+./includes/GetString_console/getstring-lib.c \
+./includes/Manejo_Listas/Doble/lista_doble-lib.c \
+./includes/Sockets/sock-lib.c \
+-o client.bin
 */
 
-#include "funciones.h"
+#include "funciones_cliente.h"
 
 
 // ########################################################
@@ -49,13 +53,15 @@ int menu() {
    int menuSelect = 0;
 
    printf( "\n###########################################################################\n\n"
-           "1) Cargar datos desde una base de datos.\n"
-           "2) Agregar, quitar o modificar datos.\n" 
-           "3) Guardar cambios de la base de datos.\n" 
-           "4) Ordenar los elementos por especialidad, precio o disponibilidades.\n" 
-           "5) Mostrar todos los elementos cargados.\n"
-           "6) Mostrar todos los elementos de una determinada especialidad.\n" 
-           "7) Mostrar la fecha de una base de datos.\n" );
+           "1) Agregar, quitar o modificar datos.\n" 
+           "2) Cargar datos desde una base de datos (LOCAL).\n"
+           "3) Guardar cambios de la base de datos  (LOCAL).\n" 
+           "4) Cargar datos desde una base de datos (REMOTO).\n"
+           "5) Guardar cambios de la base de datos  (REMOTO).\n" 
+           "6) Ordenar los elementos por especialidad, precio o disponibilidades.\n" 
+           "7) Mostrar todos los elementos cargados.\n"
+           "8) Mostrar todos los elementos de una determinada especialidad.\n" 
+           "9) Mostrar la fecha de una base de datos.\n" );
 
    do{
       printf( "\nOpción (0 o negativo para finalizar):\t\t" );
@@ -241,7 +247,7 @@ void get_user_input( Nodo_t **startNode, int sentido, \
 
 
 //------------------------------------------------------------------------
-// modificar_datos - [ REV ]
+// modificar_datos - [ DONE ]
 //------------------------------------------------------------------------
 /* Modifica datos de un nodo de la lista.
  */
@@ -428,7 +434,7 @@ void modificar_datos( Nodo_t **startNode ) {
 
 
 //------------------------------------------------------------------------
-// eliminate_data - [ REV ]
+// eliminate_data - [ DONE ]
 //------------------------------------------------------------------------
 /* Elimina datos (nodo) de la lista.
  */
@@ -610,7 +616,69 @@ char * obtener_fecha() {
 // ########################################################
 
 //------------------------------------------------------------------------
-// cargar_datos - [ REV ]
+// altas_bajas_modificaciones (ABM) - [ DONE ]
+//------------------------------------------------------------------------
+/* Agrega (alta), saca (baja) o modifica datos de la lista.
+ * # ordenamiento[2] #
+ * [0]: Dato a ordenar.
+ * [1]: Sentido de ordenamiento.
+ */
+void altas_bajas_modificaciones( Nodo_t **startNode, int sentido, \
+                                 int (*criterio_orden)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) ) {
+   int seleccion = 1;
+   
+   if ( *startNode == NULL ) { // Caso particular: lista vacía.
+      // Pasa el criterio para ordenar según diga el main().
+      get_user_input( startNode, sentido, (criterio_orden) );
+      
+   } else { // Caso general.
+      do {  // Repetición de la función.
+         do {
+            printf( "# Elija una opción #\n" 
+                    "   1) Agregar datos al inventario.\n"
+                    "   2) Sacar datos del inventario.\n"
+                    "   3) Modificar datos del inventario.\n"
+                    "* Opción:   \t" );
+            better_scanf( "%d", &seleccion );
+            
+            if ( seleccion < 1 || seleccion > 3 )
+               printf( "\n[ ERROR: OPCIÓN INVÁLIDA. ]\n\n" );
+         } while ( seleccion < 1 || seleccion > 3 );
+         
+         switch ( seleccion ) {
+            case 1:  // Alta.
+               get_user_input( startNode, sentido, (criterio_orden) );
+            break;
+            
+            case 2:  // Baja.
+               eliminate_data( startNode );
+            break;
+            
+            case 3:  // Mod.
+               modificar_datos( startNode );
+            break;
+         }
+         
+         do {
+            printf( "# ¿Desea continuar agregando, quitando o modificando datos? #\n" 
+                    "   1) Sí.\n"
+                    "   0) No.\n"
+                    "* Opción:   \t" );
+            
+            better_scanf( "%d", &seleccion );
+            
+            if ( seleccion != 1 && seleccion != 0 )
+               printf( "\n[ ERROR: OPCIÓN INVÁLIDA. ]\n\n" );
+            
+         } while ( seleccion != 1 && seleccion != 0 );
+         
+      } while ( seleccion == 1 );   // Sale si no quiere continuar haciendo ABM.
+   }  // Termina caso general.
+}  // Termina función.
+
+
+//------------------------------------------------------------------------
+// cargar_datos - [ DONE ]
 //------------------------------------------------------------------------
 /* Carga datos de un archivo de base de datos en la lista.
  * NO SOBREESCRIBE LISTA, sinó que agrega nodos a la misma.
@@ -618,9 +686,6 @@ char * obtener_fecha() {
  * Usar ".dat".
  *
  * Devuelve la fecha leída (DD/MM/YYYY).
- *
- * ERR: queda en:
-   - dprintf( fdLog, "[ Checkeando SKUs... ]\n" );
  */
 char * cargar_datos( Nodo_t **startNode, int sentido, \
                      int (*criterio_orden)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) ) {
@@ -629,8 +694,8 @@ char * cargar_datos( Nodo_t **startNode, int sentido, \
    int      mergeSelection = 0;
    char     *fechaTemp = (char *) malloc( TAM_DATE * sizeof(char) );
    Nodo_t   *nodoX = NULL;
-   char     directorio[8] = "./data/";
    char     *nombreArchivo = NULL;
+   char     directorio[8] = "./data/";
    char     *rutaArchivo = NULL;
    
    fechaTemp[TAM_DATE - 1] = '\0';
@@ -767,68 +832,6 @@ char * cargar_datos( Nodo_t **startNode, int sentido, \
 
 
 //------------------------------------------------------------------------
-// altas_bajas_modificaciones (ABM) - [ REV ]
-//------------------------------------------------------------------------
-/* Agrega (alta), saca (baja) o modifica datos de la lista.
- * # ordenamiento[2] #
- * [0]: Dato a ordenar.
- * [1]: Sentido de ordenamiento.
- */
-void altas_bajas_modificaciones( Nodo_t **startNode, int sentido, \
-                                 int (*criterio_orden)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) ) {
-   int seleccion = 1;
-   
-   if ( *startNode == NULL ) { // Caso particular: lista vacía.
-      // Pasa el criterio para ordenar según diga el main().
-      get_user_input( startNode, sentido, (criterio_orden) );
-      
-   } else { // Caso general.
-      do {  // Repetición de la función.
-         do {
-            printf( "# Elija una opción #\n" 
-                    "   1) Agregar datos al inventario.\n"
-                    "   2) Sacar datos del inventario.\n"
-                    "   3) Modificar datos del inventario.\n"
-                    "* Opción:   \t" );
-            better_scanf( "%d", &seleccion );
-            
-            if ( seleccion < 1 || seleccion > 3 )
-               printf( "\n[ ERROR: OPCIÓN INVÁLIDA. ]\n\n" );
-         } while ( seleccion < 1 || seleccion > 3 );
-         
-         switch ( seleccion ) {
-            case 1:  // Alta.
-               get_user_input( startNode, sentido, (criterio_orden) );
-            break;
-            
-            case 2:  // Baja.
-               eliminate_data( startNode );
-            break;
-            
-            case 3:  // Mod.
-               modificar_datos( startNode );
-            break;
-         }
-         
-         do {
-            printf( "# ¿Desea continuar agregando, quitando o modificando datos? #\n" 
-                    "   1) Sí.\n"
-                    "   0) No.\n"
-                    "* Opción:   \t" );
-            
-            better_scanf( "%d", &seleccion );
-            
-            if ( seleccion != 1 && seleccion != 0 )
-               printf( "\n[ ERROR: OPCIÓN INVÁLIDA. ]\n\n" );
-            
-         } while ( seleccion != 1 && seleccion != 0 );
-         
-      } while ( seleccion == 1 );   // Sale si no quiere continuar haciendo ABM.
-   }  // Termina caso general.
-}  // Termina función.
-
-
-//------------------------------------------------------------------------
 // guardar_datos - [ DONE ]
 //------------------------------------------------------------------------
 /* Guarda la lista entera en un archivo de base de datos.
@@ -953,6 +956,267 @@ void guardar_datos( Nodo_t *startNode, char *fechaAct ) {
    close( fdLog );
 }
 
+
+//------------------------------------------------------------------------
+// cargar_datos_remoto - [ REV ]
+//------------------------------------------------------------------------
+/* Carga datos de un archivo de base de datos en la lista.
+ * Ídem "cargar_datos()" pero haciéndolo de forma REMOTA.
+ * Manda el nombre del archivo al servidor y este procesa la solicitud,
+ * devolviendo los bytes del archivo en caso exitoso.
+ *
+ * Devuelve la fecha leída (DD/MM/YYYY).
+ */
+char * cargar_datos_remoto( int arguments, char *portStr[], Nodo_t **startNode, int sentido, \
+                            int (*criterio_orden)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) ) {
+	int      sockClient;       // File Descriptor para sockets.
+	int      numbytes;         // Contendrá el número de bytes recibidos por "read()".
+   char     buf[MAXDATASIZE];
+   char     *fechaTemp = NULL;
+   char     *nombreArchivo = NULL;
+   char     directorio[8] = "./data/";
+   char     *rutaArchivo = NULL;
+   // Dato_t   datoInput;
+   
+   
+   // ### Conecta con el servidor ###
+   sockClient = conectar( arguments, portStr );
+   if ( sockClient < 1 ) {
+      printf( "\n[ ERROR: NO SE PUDO CONECTAR AL SERVIDOR. ]\n\n" );
+   } else {
+      // ### Abre el archivo a extraer datos ###
+      do {
+         printf( "# Ingrese el nombre del archivo a cargar información. #\n"
+                 "# Utilice solamente archivos con extensión \'.dat\'.    #\n" 
+                 "* Archivo:   \t" );
+         
+         nombreArchivo = write_str_d();
+         
+         if ( nombreArchivo == NULL ) {
+            printf( "\n[ ERROR: NOMBRE DE ARCHIVO INVÁLIDO. ]\n\n" );
+         } else {
+            // Agregarle al nombre la ruta hasta "./data/" (+ 7 B).
+            rutaArchivo = (char *) malloc( strlen( nombreArchivo ) + strlen( directorio ) + 1 );
+            strcpy( rutaArchivo, directorio );
+            strcpy( rutaArchivo + strlen( directorio ), nombreArchivo );
+            rutaArchivo[strlen( nombreArchivo ) + strlen( directorio )] = '\0';
+            
+            // # Abre el archivo #.
+            numBytes = write( sockClient, rutaArchivo, strlen( rutaArchivo ) + 1 );    // Envía la ruta a buscar el archivo.
+            numBytes = read( sockClient, buf, 1 );          // Recibe confirmación de si existe el archivo.
+            
+            if ( numBytes < 1 || (*buf) == 0 ) {
+               printf( "\n[ ERROR: NOMBRE DE ARCHIVO INVÁLIDO. ]\n\n" );
+               free( nombreArchivo );
+               free( rutaArchivo );
+            }
+         }
+      } while ( numBytes < 1 || nombreArchivo == NULL );
+      
+      
+      // ### Carga datos a la lista ###
+      numBytes = read( sockClient, fechaTemp, TAM_DATE );   // Lee la fecha.
+      
+      if ( numBytes == TAM_DATE ) {  // Primeros Bytes correspondientes a la fecha de la base de datos.
+      
+         do {  // Pasa por la lista entera.
+            
+            Dato_t datoInput;
+            numBytes = read( sockClient, &datoInput, sizeof(Dato_t) );  // Lee 1 dato.
+            
+            if ( numBytes == sizeof(Dato_t) ) {
+               
+               // Checkea los SKUs.
+               if ( *startNode == NULL ) {   // Caso particular: lista vacía.
+                  
+                  (*startNode) = create_node( datoInput );     // Agrega un dato a la lista.
+               } else {                      // Caso general.
+                  
+                  if ( ( nodoX = is_SKU_repeated( *startNode, datoInput.sku ) ) != NULL ) { // SKU repetido.
+                     
+                     printf( "[ Se detectaron los siguientes datos con el mismo SKU: ]\n" );
+                  
+                     show_data( nodoX->dato );
+                     show_data( datoInput );
+                     
+                     do {
+                        printf( "# Elija el dato a conservar #\n" 
+                                "   1) Dato ya creado en el programa.\n" 
+                                "   2) Dato guardado en el archivo.\n" 
+                                "* Opción:   \t" );
+                        
+                        better_scanf( "%d", &mergeSelection );
+                        
+                        if ( mergeSelection != 1 && mergeSelection != 2 )
+                           printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n\n" );
+                        
+                     } while ( mergeSelection != 1 && mergeSelection != 2 );
+                  
+                     // Junta datos del mismo SKU, aumenta stock.
+                     merge_data( &(nodoX->dato), datoInput, mergeSelection );
+                     
+                  } else { // No se repite el SKU.
+                     
+                     nodoX = create_node( datoInput );     // Agrega un dato a la lista.
+                     ordered_insertion( startNode, nodoX, sentido, criterio_orden );
+                  }  // Terminó de checkear repeticiones por SKU.
+               }  // Termina caso general.
+            }  // Se leyó un N° de bytes correspondientes a "Dato_t".
+         } while ( numBytes == sizeof(Dato_t) );    // Terminó de leer el archivo.
+         
+         printf( "\n[ Lectura exitosa. ]\n\n" );
+         
+      } else {    // N° de Bytes leídos menor a la fecha.
+         printf( "\n[ ARCHIVO VACÍO. ]\n\n" );
+      }
+      
+      free( nombreArchivo );
+      free( rutaArchivo );
+      
+      // # Cierra conexión #
+      close( sockClient );
+   }
+   
+   return fechaTemp;
+}
+
+
+//------------------------------------------------------------------------
+// guardar_datos_remoto - [ INP ]
+//------------------------------------------------------------------------
+/* Guarda la lista entera en un archivo de base de datos.
+ * Usar '.dat'.
+ * Ídem "guardar_datos()" pero de manera REMOTA.
+ * Accede al servidor, mandando la lista entera y el nombre del archivo.
+ */
+void guardar_datos_remoto( int arguments, char *portStr[], Nodo_t *startNode, char *fechaAct ) {
+   int      sockClient;       // File Descriptor para sockets.
+	int      numbytes;         // Contendrá el número de bytes recibidos por "read()".
+   char     buf[MAXDATASIZE];
+   int      fdData = 0;
+   char     *nombreArchivo = NULL;
+   char     *rutaArchivo = NULL;
+   char     directorio[8] = "./data/";
+   int      sobreescribir = 0;
+   Nodo_t   *nodoX = NULL;
+   
+   // # LOG #
+   int      fdLog;
+   fdLog = open( "./log/guardar_datos_remoto.log", O_WRONLY | O_TRUNC | O_CREAT, 0666 );
+   dprintf( fdLog, 
+            "------------------------------------------------------------------------\n"
+            "Guardando datos...\n"
+            "------------------------------------------------------------------------\n\n" );
+   
+   
+   if ( startNode == NULL ) {
+      printf( "\n[ ERROR: INVENTARIO VACÍO. ]\n\n" );
+   } else {
+      
+      sockClient = conectar( arguments, portStr );
+      
+      if ( sockClient < 1 ) {
+         printf( "\n[ ERROR: NO SE PUDO CONECTAR AL SERVIDOR. ]\n\n" );
+      } else {
+         // # LOG #
+         dprintf( fdLog, "\n[ Conexión exitosa con el servidor. ]\n\n" );
+         
+         do{   // Verificar nombre del archivo por input del usuario.
+            printf( "# Elija un nombre para el archivo a guardar los datos + .dat #\n" 
+                    "* Archivo:   \t" );
+            nombreArchivo = write_str_d();
+            printf( "\n" );
+            
+            // # LOG #
+            dprintf( fdLog, "* Nombre obtenido\t %s \n", nombreArchivo );
+            
+            if ( nombreArchivo == NULL ) {
+               printf( "\n[ ERROR: INGRESE UN NOMBRE VÁLIDO. ]\n\n" );
+               
+            } else { // Evaluar nombres repetidos.
+               // # LOG #
+               dprintf( fdLog, "* Nombre archivo:   \t%s\n", nombreArchivo );
+               
+               // Agregarle al nombre la ruta hasta "./data/" (+ 7 B).
+               rutaArchivo = (char *) malloc( strlen( nombreArchivo ) + strlen( directorio ) + 1 );
+               strcpy( rutaArchivo, directorio );
+               strcpy( rutaArchivo + strlen( directorio ), nombreArchivo );
+               rutaArchivo[strlen( nombreArchivo ) + strlen( directorio )] = '\0';
+               
+               // # LOG #
+               dprintf( fdLog, "* Ruta:\t\t%s \n", rutaArchivo );
+               
+               numBytes = read( sockClient, buf, 1 );
+               if ( *buf == 1 ) {   // Repetido
+                  // # LOG #
+                  dprintf( fdLog, "* Sobreescritura   =   " );
+                  
+                  do {
+                     printf( "Existe un archivo con el mismo nombre, ¿desea sobreescibirlo?\n"
+                             "   1) Sí.\n"
+                             "   2) No.\n" 
+                             "* Opción:   \t" );
+                     
+                     better_scanf( "%d", &sobreescribir );
+                     
+                     if ( sobreescribir != 1 && sobreescribir != 2 )
+                        printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n\n" );
+                  } while ( sobreescribir != 1 && sobreescribir != 2 );
+                  
+                  
+                  switch ( sobreescribir ) {
+                     case 1:  // Sobreescritura.
+                        // # LOG #            
+                        dprintf( fdLog, "1\n" );
+                     break;
+                  
+                     case 2:  // Vuelve a elegir el nombre del archivo.
+                        // # LOG #
+                        dprintf( fdLog, "0\n" );
+                        
+                        free( nombreArchivo );
+                        free( rutaArchivo );
+                     break;
+                  }  // Switch de sobreescritura.
+               }  // Evaluación nombres repetidos.
+            }  // Ingreso de nombre válido.
+         } while ( nombreArchivo == NULL || rutaArchivo == NULL ); 
+         // Nombró correctamente el archivo.
+         
+         
+         // Escribe la fecha actual en formato "DD/MM/YYYY".
+         if ( fechaAct == NULL ) {
+            fechaAct = obtener_fecha();
+         }
+         write( sockClient, fechaAct, TAM_DATE );
+         
+         // # LOG #
+         dprintf( fdLog, "* Fecha:\t%s\n", fechaAct );
+         dprintf( fdLog, "* Datos:\n" );
+         
+         
+         // Guarda TODOS los DATOS en un archivo.
+         nodoX = startNode;
+         while ( nodoX != NULL ) {
+            // # LOG #
+            show_data_log( nodoX->dato, fdLog );
+            
+            write( sockClient, &(nodoX->dato), sizeof(Dato_t) );
+            nodoX = nodoX->nextNode; 
+         }  // Terminó de guardar los datos.
+         
+         
+         free( nombreArchivo );
+         free( rutaArchivo );
+
+         // # Cierra conexión #
+         close( sockClient );
+         
+         // # LOG #
+         close( fdLog );
+      }  // Conexión exitosa.
+   }  // Inventario no vacío.
+}
 
 //------------------------------------------------------------------------
 // ordenar_datos - [ DONE ]

@@ -1,4 +1,6 @@
-#ifndef funciones
+#ifndef FUNCIONES_CLIENTE
+   #define FUNCIONES_CLIENTE
+   
    // ########################################################
    // Includes
    // ########################################################
@@ -12,29 +14,23 @@
 	#include <ctype.h>
    #include <time.h>
    
-   #include "../../includes/GetString_console/getstring-lib.h"       // Obtener string del kernel.
-   #include "../../includes/Manejo_Listas/Doble/lista_doble-lib.h"   // Manejo de listas dobles.
-   #include "../debugging.h"  // Debugging de funciones.
+   #include "../../../includes/GetString_console/getstring-lib.h"       // Obtener string del kernel.
+   #include "../../../includes/Manejo_Listas/Doble/lista_doble-lib.h"   // Manejo de listas dobles.
+   #include "../../debugging.h"  // Debugging de funciones.
+   
    
    // ########################################################
    // Defines
    // ########################################################
-
-   #define ORD_ESP            1
-   #define ORD_PRE            2
-   #define ORD_DISP           3
+   #define ORD_ESP            0
+   #define ORD_PRE            1
+   #define ORD_DISP           2
    
    #define ORD_ASC            1
    #define ORD_DES            2
-
-   #define CARDIOLOGIA        1
-   #define CLINICA            2
-   #define GASTROENTEROLOGIA  3
-   #define CIRUGIA            4
-   #define DEREMATOLOGIA      5
-   #define OFTALMOLOGIA       6
-   #define TRAUMATOLOGIA      7
    
+   #define SIZE_IP            16    // IPs: 0.0.0.0 ~ 255.255.255.255
+   #define SIZE_PROT          6     // Ports: 0 ~ 65535.
 
    // ########################################################
    // Funciones
@@ -45,22 +41,25 @@
    
    // ### Manejo de nodos ###
    void     get_user_input( Nodo_t **startNode, int sentido, \
-                           int (*criterio_orden)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) );     // [ REV ] - Ver inserción ordenada.
-   void     modificar_datos( Nodo_t **startNode );                                     // [ REV ]
-   void     eliminate_data( Nodo_t *startNode );                                       // [ REV ] 
+                           int (*criterio_orden)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) );        // [ DONE ]
+   void     modificar_datos( Nodo_t **startNode );                                     // [ DONE ]
+   void     eliminate_data( Nodo_t **startNode );                                      // [ DONE ] 
    
    // ### Especiales ###
    void     show_data( Dato_t datoX );                                                 // [ DONE ]
    void     close_session( Nodo_t *startNode, char *fechaStr );                        // [ DONE ]
-   Nodo_t * is_SKU_repeated( Nodo_t *startNode, int skuInput );                        // [ REV ]
+   Nodo_t * is_SKU_repeated( Nodo_t *startNode, int skuInput );                        // [ DONE ]
    char   * obtener_fecha();                                                           // [ DONE ]
    
    // ### Opciones Menú ###
-   char   * cargar_datos( Nodo_t **startNode, int sentido, \
-                           int (*criterio_orden)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) );     // [ REV ]
    void     altas_bajas_modificaciones( Nodo_t **startNode, int sentido, \
-                           int (*criterio_orden)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) );     // [ REV ]
-   void     guardar_datos( Nodo_t *startNode, char *fechaAct );                        // [ REV ]
+                           int (*criterio_orden)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) );        // [ DONE ]
+   char   * cargar_datos( Nodo_t **startNode, int sentido, \
+                           int (*criterio_orden)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) );        // [ DONE ]
+   void     guardar_datos( Nodo_t *startNode, char *fechaAct );                        // [ DONE ]
+   char   * cargar_datos_remoto( int arguments, char *portStr[], Nodo_t **startNode, int sentido, \
+                           int (*criterio_orden)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) );        // [ REV ]
+   void     guardar_datos_remoto( int arguments, char *portStr[], Nodo_t *startNode, char *fechaAct );         // [ INP ]
    void     ordenar_datos( Nodo_t **startNode, int ordenamiento[], \
                            int (*ordenamiento_lista[3])( Nodo_t *backNode, Nodo_t *frontNode, int orden ) );   // [ DONE ]
    void     mostrar_datos( Nodo_t *startNode, const int mode );                        // [ DONE ]

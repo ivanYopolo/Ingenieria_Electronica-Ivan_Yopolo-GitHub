@@ -15,20 +15,20 @@ int conectar( int argc, char * argv[] )
 		exit(1);
 	}
  
-   /* Creamos el socket */
+/* Creamos el socket */
 	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
 	{
 		perror("Error en creaciÃ³n de socket");
 		exit(1);
 	}
 
-   /* Establecemos their_addr con la direccion del server */
+/* Establecemos their_addr con la direccion del server */
 	their_addr.sin_family = AF_INET;
-	their_addr.sin_port = (argc == 2) ? htons(PORT) : htons(atoi(argv[2]));
+	their_addr.sin_port = (argc == 2)? htons(PORT):htons(atoi(argv[2]));
 	their_addr.sin_addr = *((struct in_addr *)he->h_addr);
 	bzero(&(their_addr.sin_zero), 8);
 
-   /* Intentamos conectarnos con el servidor */
+/* Intentamos conectarnos con el servidor */
 	if (connect(sockfd, (struct sockaddr *)&their_addr, sizeof(struct sockaddr)) == -1)
 	{
 		perror("Error tratando de conectar al server");
@@ -70,16 +70,15 @@ int open_conection( struct sockaddr_in * my_addr )
 	{
 		fprintf(stderr, "Error en funciÃ³n listen. CÃ³digo de error %s\n", strerror(aux));
 		return -1;
-   }
-   
+        }
 	return sockaux;
 }
 
 int aceptar_pedidos( int sockfd )
 {
-	int                  newfd; 	/* Por este socket duplicado del inicial se transaccionarÃ¡*/
-   struct sockaddr_in   their_addr;  /* Contendra la direccion IP y nÃºmero de puerto del cliente */
-	unsigned int         sin_size = sizeof(struct sockaddr_in);
+	int newfd; 	/* Por este socket duplicado del inicial se transaccionarÃ¡*/
+        struct sockaddr_in their_addr;  /* Contendra la direccion IP y nÃºmero de puerto del cliente */
+	unsigned int sin_size = sizeof(struct sockaddr_in);
 
 	/*Se espera por conexiones ,*/
 	if ((newfd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size)) == -1)
