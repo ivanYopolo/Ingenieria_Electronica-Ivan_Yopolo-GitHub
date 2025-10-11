@@ -21,12 +21,12 @@ void cargar_datos_server() {
    int                  sockClient;
    char                 ecoMessage[MAXDATASIZE];   // Mensaje a devolver, el "eco".
    char                 mensajeSalida[2][6] = { "salir", "exit" };
-   struct sockaddr_in   localAdress;               // IP y puerto locales.
+   struct sockaddr_in   srvAdress;               // IP y puerto locales.
    int                  closeConection = 0;
    
    printf( "\n# Abriendo socket... #\n" );
    
-   if ( ( sockServer = open_conection( &localAdress ) ) == -1 ) { // Abre un socket.
+   if ( ( sockServer = open_conection( &srvAdress ) ) == -1 ) { // Abre un socket.
 		perror( "[ ERROR: FALLÓ LA CREACIÓN DE LA CONEXIÓN. ]" ); 
 		exit (1);
 	}
@@ -55,12 +55,12 @@ void guardar_datos_server() {
    int                  sockClient;
    char                 ecoMessage[MAXDATASIZE];   // Mensaje a devolver, el "eco".
    char                 mensajeSalida[2][6] = { "salir", "exit" };
-   struct sockaddr_in   localAdress;               // IP y puerto locales.
+   struct sockaddr_in   srvAdress;               // IP y puerto locales.
    int                  closeConection = 0;
    
    printf( "\n# Abriendo socket... #\n" );
    
-   if ( ( sockServer = open_conection( &localAdress ) ) == -1 ) { // Abre un socket.
+   if ( ( sockServer = open_conection( &srvAdress ) ) == -1 ) { // Abre un socket.
 		perror( "[ ERROR: FALLÓ LA CREACIÓN DE LA CONEXIÓN. ]" ); 
 		exit (1);
 	}

@@ -52,58 +52,68 @@ clear; gcc -Wall --pedantic-errors main_client.c \
  * [1]: Sentido de ordenamiento.
 */
 
+   /* # Funciones de librería cátedra SOCKETS como "char *argv[]"... #
+    * Array de 2 direcciones (los espacios se cambian por \0): 
+    * [0]: IP + PORT_RD.
+    * [1]: IP + PORT_WR.
+    
+      char     (*addrStr)[2][2] = NULL;
+      addrStr[0][0]         = (char *)   malloc( SIZE_IP   * sizeof (char) );    // Nivel: STRING (IP).
+      addrStr[0][1]         = (char *)   malloc( SIZE_PORT * sizeof (char) );    // Nivel: STRING (PORT_RD).
+      addrStr[1][0]         = (char *)   malloc( SIZE_IP   * sizeof (char) );    // Nivel: STRING (IP).
+      addrStr[1][1]         = (char *)   malloc( SIZE_PORT * sizeof (char) );    // Nivel: STRING (PORT_WR).
+      
+      // char     ***addrStr = NULL;
+      // addrStr               = (char ***) malloc( 2 * sizeof (char **) );         // Nivel: ARRAY DE 2 ARRAY DE 2 STRINGS.
+      
+      // *addrStr              = (char **)  malloc( 2 * sizeof (char *) );          // Nivel: ARRAY A DE 2 STRINGS.
+      // *(*addrStr)           = (char *)   malloc( SIZE_IP   * sizeof (char) );    // Nivel: STRING (IP).
+      // *(*addrStr + 1)       = (char *)   malloc( SIZE_PORT * sizeof (char) );    // Nivel: STRING (PORT_RD).
+      
+      // *(addrStr + 1)        = (char **)  malloc( 2 * sizeof (char *) );          // Nivel: ARRAY B DE 2 STRINGS.
+      // *(*(addrStr + 1))     = (char *)   malloc( SIZE_IP   * sizeof (char) );    // Nivel: STRING (IP).
+      // *(*(addrStr + 1) + 1) = (char *)   malloc( SIZE_PORT * sizeof (char) );    // Nivel: STRING (PORT_WR).
+    */
+
 // addrStr/argv: IP + PORT_RD + PORT_WR
 int main( int argc, char *argv[] ) {
-// int main( ) {
-   int      menuSelect = 0;                           // Selección del menú.
-   int      modeShow = 0;
-   int      ordenamiento[2] = { ORD_ESP, ORD_ASC };   // Tipo de ordenamiento a realizar.
+   int      menuSelect = 0;            // Selección del menú.
+   int      modeShow = 0;              // Modo de cómo muestra los datos.
+   int      ordenamiento[2] = 
+               { ORD_ESP, ORD_ASC };   // Tipo de ordenamiento a realizar.
    int      (*criterio_orden[3])( Nodo_t *backNode, Nodo_t *frontNode, int orden ) = 
                { orden_especialidad, orden_precio, orden_disponibilidad };    // Array de funciones para ordenamiento.
-   
    // Formato: DD/MM/YYYY.
    char     *fechaTempStr = NULL;      // String de fecha del tiempo actual.
    Nodo_t   *startNode = NULL;
+   char     srvIP[SIZE_IP];            // Incluye \0.
+   int      portRD;
+   int      portWR;
    
-   /* Array de 2 direcciones (los espacios se cambian por \0): 
-    * [0]: IP + PORT_RD.
-    * [1]: IP + PORT_WR.
-    */
-   char     ***addrStr = NULL;
-   
-   addrStr               = (char ***) malloc( 2 * sizeof (char **) );         // Nivel: ARRAY DE 2 ARRAY DE 2 STRINGS.
-   
-   *addrStr              = (char **)  malloc( 2 * sizeof (char *) );          // Nivel: ARRAY A DE 2 STRINGS.
-   *(*addrStr)           = (char *)   malloc( SIZE_IP   * sizeof (char) );    // Nivel: STRING (IP).
-   *(*addrStr + 1)       = (char *)   malloc( SIZE_PROT * sizeof (char) );    // Nivel: STRING (PORT_RD).
-   
-   *(addrStr + 1)        = (char **)  malloc( 2 * sizeof (char *) );          // Nivel: ARRAY B DE 2 STRINGS.
-   *(*(addrStr + 1))     = (char *)   malloc( SIZE_IP   * sizeof (char) );    // Nivel: STRING (IP).
-   *(*(addrStr + 1) + 1) = (char *)   malloc( SIZE_PROT * sizeof (char) );    // Nivel: STRING (PORT_WR).
-   
+   srvIP[SIZE_IP] = '\0';
    
    switch ( argc ) {
-      case 1:  // Hay IP, faltan puertos.
-         strcpy( *(*addrStr), argv[0] );                    // IP
-         strcpy( **(addrStr + 1), argv[0] );                // IP
-         sprintf( *(*addrStr + 1), "%d", PORT_RD );         // PORT_RD
-         sprintf( *(*(addrStr + 1) + 1), "%d", PORT_WR );   // PORT_WR
+      case 1:  // Hay IP, faltan "portRD" & "portWR".
+         strncpy( srvIP, argv[0], SIZE_IP );
+         
+         portRD = PORT_RD;                   // Agarra puerto default de lectura (READ).
+         portWR = PORT_WR;                   // Agarra puerto default de lectura (WRITE).
       break;
       
       
-      case 2:  // Hay IP, falta 1 puerto.
-         strcpy( *(*addrStr), argv[0] );                    // IP
-         strcpy( **(addrStr + 1), argv[0] );                // IP
-         strcpy( *(*addrStr + 1), argv[1] );                // PORT_RD
-         sprintf( *(*(addrStr + 1) + 1), "%d", PORT_WR );   // PORT_WR
+      case 2:  // Hay IP, falta "portWR".
+         strncpy( srvIP, argv[0], SIZE_IP );
+      
+         portRD = atoi( argv[1] );
+         portWR = PORT_WR;                   // Agarra puerto default de lectura (WRITE).
       break;
       
       
       case 3:  // Hay IP + PORT_RD + PORT_WR.
-         strcpy( *(*addrStr), argv[0] );           // IP
-         strcpy( **(addrStr + 1), argv[0] );       // IP
-         strcpy( *(*addrStr + 1), argv[1] );       // PORT_RD
-         strcpy( *(*(addrStr + 1) + 1, argv[2] );  // PORT_WR
+         strncpy( srvIP, argv[0], SIZE_IP );
+         
+         portRD = atoi( argv[1] );
+         portWR = atoi( argv[2] );
       break;
       
       
@@ -138,11 +148,11 @@ int main( int argc, char *argv[] ) {
             break;
             
             case 4:  // Carga datos desde un archivo (REMOTO).
-               fechaTempStr = cargar_datos_remoto( argc, addrStr[0], &startNode, ordenamiento[1], (criterio_orden[ordenamiento[0]]) );
+               fechaTempStr = cargar_datos_remoto( portRD, srvIP, &startNode, ordenamiento[1], (criterio_orden[ordenamiento[0]]) );
             break;
             
             case 5:  // Guarda datos en un archivo (REMOTO).
-               guardar_datos_remoto( argc, addrStr[1], startNode, fechaTempStr );
+               guardar_datos_remoto( portWR, srvIP, startNode, fechaTempStr );
             break;
             
             case 6:  // Ordena datos según criterio.

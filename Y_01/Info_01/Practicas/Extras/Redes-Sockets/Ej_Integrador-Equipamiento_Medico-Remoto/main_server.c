@@ -53,7 +53,40 @@ clear; gcc -Wall --pedantic-errors main_server.c \
  */
 
 // Hacer "fork()" para que 2 procesos manejen puertos distintos.
+// Servidor solamente toma 2 PUERTOS.
 int main( int argc, char *argv[] ) {
+   struct sockaddr_in   srv_addr;   // Direcciones del servidor.
+   pid_t                pid;        // PID del fork (padre-hijo).
    
+   switch ( argc ) {
+      case 1:  // No pasó puertos.
+         // A
+      break;
+      
+      case 2:  // Pasó 1 puerto.
+         // A
+      break;
+      
+      case 3:  // Pasó 2 puertos.
+         // A
+      break;
+   }
+   
+   pid = fork();
+   switch ( pid ) {
+      case -1:    // ERROR.
+         
+      break;
+      
+      case 0:     // Es el HIJO.
+         // guardar_datos_server();
+      break;   
+      
+      default:    // PID del hijo, es el PADRE.
+         // cargar_datos_server();
+      break;
+   }
+   
+   return 0;
 }
 

@@ -967,7 +967,7 @@ void guardar_datos( Nodo_t *startNode, char *fechaAct ) {
  *
  * Devuelve la fecha leída (DD/MM/YYYY).
  */
-char * cargar_datos_remoto( int arguments, char *portStr[], Nodo_t **startNode, int sentido, \
+char * cargar_datos_remoto( int portRD, char *srvIP, Nodo_t **startNode, int sentido, \
                             int (*criterio_orden)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) ) {
 	int      sockClient;       // File Descriptor para sockets.
 	int      numbytes;         // Contendrá el número de bytes recibidos por "read()".
@@ -980,7 +980,8 @@ char * cargar_datos_remoto( int arguments, char *portStr[], Nodo_t **startNode, 
    
    
    // ### Conecta con el servidor ###
-   sockClient = conectar( arguments, portStr );
+   // sockClient = conectar( arguments, portStr );
+   sockClient = conectar( srvIP, portRD );
    if ( sockClient < 1 ) {
       printf( "\n[ ERROR: NO SE PUDO CONECTAR AL SERVIDOR. ]\n\n" );
    } else {
@@ -1089,7 +1090,7 @@ char * cargar_datos_remoto( int arguments, char *portStr[], Nodo_t **startNode, 
  * Ídem "guardar_datos()" pero de manera REMOTA.
  * Accede al servidor, mandando la lista entera y el nombre del archivo.
  */
-void guardar_datos_remoto( int arguments, char *portStr[], Nodo_t *startNode, char *fechaAct ) {
+void guardar_datos_remoto( int portRD, char *srvIP, Nodo_t *startNode, char *fechaAct ) {
    int      sockClient;       // File Descriptor para sockets.
 	int      numbytes;         // Contendrá el número de bytes recibidos por "read()".
    char     buf[MAXDATASIZE];
@@ -1113,7 +1114,8 @@ void guardar_datos_remoto( int arguments, char *portStr[], Nodo_t *startNode, ch
       printf( "\n[ ERROR: INVENTARIO VACÍO. ]\n\n" );
    } else {
       
-      sockClient = conectar( arguments, portStr );
+      // sockClient = conectar( arguments, portStr );
+      sockClient = conectar( srvIP, portRD );
       
       if ( sockClient < 1 ) {
          printf( "\n[ ERROR: NO SE PUDO CONECTAR AL SERVIDOR. ]\n\n" );
