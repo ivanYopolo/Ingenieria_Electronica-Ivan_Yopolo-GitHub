@@ -52,29 +52,6 @@ clear; gcc -Wall --pedantic-errors main_client.c \
  * [1]: Sentido de ordenamiento.
 */
 
-   /* # Funciones de librería cátedra SOCKETS como "char *argv[]"... #
-    * Array de 2 direcciones (los espacios se cambian por \0): 
-    * [0]: IP + PORT_RD.
-    * [1]: IP + PORT_WR.
-    
-      char     (*addrStr)[2][2] = NULL;
-      addrStr[0][0]         = (char *)   malloc( SIZE_IP   * sizeof (char) );    // Nivel: STRING (IP).
-      addrStr[0][1]         = (char *)   malloc( SIZE_PORT * sizeof (char) );    // Nivel: STRING (PORT_RD).
-      addrStr[1][0]         = (char *)   malloc( SIZE_IP   * sizeof (char) );    // Nivel: STRING (IP).
-      addrStr[1][1]         = (char *)   malloc( SIZE_PORT * sizeof (char) );    // Nivel: STRING (PORT_WR).
-      
-      // char     ***addrStr = NULL;
-      // addrStr               = (char ***) malloc( 2 * sizeof (char **) );         // Nivel: ARRAY DE 2 ARRAY DE 2 STRINGS.
-      
-      // *addrStr              = (char **)  malloc( 2 * sizeof (char *) );          // Nivel: ARRAY A DE 2 STRINGS.
-      // *(*addrStr)           = (char *)   malloc( SIZE_IP   * sizeof (char) );    // Nivel: STRING (IP).
-      // *(*addrStr + 1)       = (char *)   malloc( SIZE_PORT * sizeof (char) );    // Nivel: STRING (PORT_RD).
-      
-      // *(addrStr + 1)        = (char **)  malloc( 2 * sizeof (char *) );          // Nivel: ARRAY B DE 2 STRINGS.
-      // *(*(addrStr + 1))     = (char *)   malloc( SIZE_IP   * sizeof (char) );    // Nivel: STRING (IP).
-      // *(*(addrStr + 1) + 1) = (char *)   malloc( SIZE_PORT * sizeof (char) );    // Nivel: STRING (PORT_WR).
-    */
-
 // addrStr/argv: IP + PORT_RD + PORT_WR
 int main( int argc, char *argv[] ) {
    int      menuSelect = 0;            // Selección del menú.
@@ -89,19 +66,21 @@ int main( int argc, char *argv[] ) {
    char     srvIP[SIZE_IP];            // Incluye \0.
    int      portRD;
    int      portWR;
-   
+
    srvIP[SIZE_IP] = '\0';
    
    switch ( argc ) {
-      case 1:  // Hay IP, faltan "portRD" & "portWR".
+      case 2:  // Hay IP, faltan "portRD" & "portWR".
          strncpy( srvIP, argv[0], SIZE_IP );
          
          portRD = PORT_RD;                   // Agarra puerto default de lectura (READ).
          portWR = PORT_WR;                   // Agarra puerto default de lectura (WRITE).
+         
+         printf( "\n[ Puertos por defecto lectura/escritura:   %d / %d ]\n\n", portRD, portWR );
       break;
       
       
-      case 2:  // Hay IP, falta "portWR".
+      case 3:  // Hay IP, falta "portWR".
          strncpy( srvIP, argv[0], SIZE_IP );
       
          portRD = atoi( argv[1] );
@@ -109,17 +88,18 @@ int main( int argc, char *argv[] ) {
       break;
       
       
-      case 3:  // Hay IP + PORT_RD + PORT_WR.
+      case 4:  // Hay IP + PORT_RD + PORT_WR.
          strncpy( srvIP, argv[0], SIZE_IP );
          
          portRD = atoi( argv[1] );
          portWR = atoi( argv[2] );
       break;
       
-      
       default:
-         printf( "\n[ ERROR: FALTA IP + PUERTO. ]\n\n" );
-         return 1;
+         if ( argc < 2 ) {
+            printf( "\n[ ERROR: FALTAN IP + PUERTOS LECTURA/ESCRITURA. ]\n\n" );
+            return 1;
+         }
    }
    
 

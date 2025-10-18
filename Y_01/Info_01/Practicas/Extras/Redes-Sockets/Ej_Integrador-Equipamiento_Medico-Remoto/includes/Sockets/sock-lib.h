@@ -20,7 +20,7 @@
    // ########################################################
    // Defines
    // ########################################################
-   #define PORT         3490	   // El puerto donde se conecta, servidor. 
+   #define DEFAULT_PORT 3490	   // El puerto donde se conecta, servidor. 
    #define BACKLOG      10       // Tamaño de la cola de conexiones recibidas.
    
    
@@ -29,9 +29,9 @@
    // ########################################################
 
    // ### SERVIDOR ###
-   int	open_conection( struct sockaddr_in *addr );  /* Función que crea la conexión. */
-   int	aceptar_pedidos( int sockfd );	            /* Función que acepta una conexión entrante. */
+   int	open_conection( struct sockaddr_in *srv_addr, int port );   // Función que crea la conexión.
+   int	aceptar_pedidos( int sockfd );	                           // Función que acepta una conexión entrante.
    
    // ### CLIENTE ###
-   int	conectar( int argc, char *argv[] );          // Recibe el PUERTO como texto.
+   int	conectar( char *ip, int port );                             // Recibe el PUERTO como texto.
 #endif

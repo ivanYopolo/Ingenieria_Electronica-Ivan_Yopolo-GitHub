@@ -958,12 +958,22 @@ void guardar_datos( Nodo_t *startNode, char *fechaAct ) {
 
 
 //------------------------------------------------------------------------
-// cargar_datos_remoto - [ REV ]
+// cargar_datos_remoto - [ INP ]
 //------------------------------------------------------------------------
 /* Carga datos de un archivo de base de datos en la lista.
  * Ídem "cargar_datos()" pero haciéndolo de forma REMOTA.
  * Manda el nombre del archivo al servidor y este procesa la solicitud,
  * devolviendo los bytes del archivo en caso exitoso.
+ *
+ * # Envía al servidor #
+ * - (#) Nombre del archivo a leer.
+ * - (##) 1: TERMINA EL SERVIDOR.
+ * - (##) 0: continúa su funcionamiento normal.
+ * 
+ * # Recibe del servidor #
+ * - (#) 1: si el archivo existe.
+ * - (#) 0: si no existe tal archivo.
+ * - DATOS DE CADA NODO DE LA LISTA.
  *
  * Devuelve la fecha leída (DD/MM/YYYY).
  */
@@ -1089,6 +1099,16 @@ char * cargar_datos_remoto( int portRD, char *srvIP, Nodo_t **startNode, int sen
  * Usar '.dat'.
  * Ídem "guardar_datos()" pero de manera REMOTA.
  * Accede al servidor, mandando la lista entera y el nombre del archivo.
+ *
+ * # Envía al servidor #
+ * - (#) Nombre del archivo a guardar.
+ * - DATOS DE CADA NODO DE LA LISTA ENTERA.
+ * - (##) 1: TERMINA EL SERVIDOR.
+ * - (##) 0: continúa su funcionamiento normal.
+ *
+ * # Recibe del servidor #
+ * - (#) 1: si el archivo ya existe (nombre repetido).
+ * - (#) 0: si no existe tal archivo.
  */
 void guardar_datos_remoto( int portRD, char *srvIP, Nodo_t *startNode, char *fechaAct ) {
    int      sockClient;       // File Descriptor para sockets.

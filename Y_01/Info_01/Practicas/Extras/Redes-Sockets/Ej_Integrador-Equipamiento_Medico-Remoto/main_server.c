@@ -52,40 +52,55 @@ clear; gcc -Wall --pedantic-errors main_server.c \
    nc 127.0.0.1 [ VER PUERTO POR FUNCIÓN ]
  */
 
+void func() {
+   wait(NULL);
+}
+
 // Hacer "fork()" para que 2 procesos manejen puertos distintos.
 // Servidor solamente toma 2 PUERTOS.
 int main( int argc, char *argv[] ) {
-   struct sockaddr_in   srv_addr;   // Direcciones del servidor.
+   // struct sockaddr_in   srvAddr;   // Direcciones del servidor.
+   int                  portRD;     // Puerto de lectura (de archivos).
+   int                  portWR;     // Puerto de escritura (guardado de archivos).
    pid_t                pid;        // PID del fork (padre-hijo).
+   char                 endSrv = 0;
    
    switch ( argc ) {
       case 1:  // No pasó puertos.
-         // A
+         portRD = PORT_RD;                   // Agarra puerto default de lectura (READ).
+         portWR = PORT_WR;                   // Agarra puerto default de lectura (WRITE).
       break;
       
       case 2:  // Pasó 1 puerto.
-         // A
+         portRD = atoi( argv[ 1 ] );
+         portWR = PORT_WR;                   // Agarra puerto default de lectura (WRITE).
       break;
       
       case 3:  // Pasó 2 puertos.
-         // A
+         portRD = atoi( argv[ 1 ] );
+         portWR = atoi( argv[ 2 ] );
       break;
    }
    
    pid = fork();
-   switch ( pid ) {
-      case -1:    // ERROR.
+   do {
+      switch ( pid ) {
+         case -1:    // ERROR.
+            perror( "[ ERROR: NO SE PUDO CREAR EL HIJO CON fork(). ]" ); 
+            exit(1);
+         break;
          
-      break;
+         case 0:     // HIJO.
+            endSrv = guardar_datos_server( portWR );
+         break;   
+         
+         default:    // PADRE; obtiene el PID del hijo.
+            endSrv = cargar_datos_server( portRD );
+            signal(SIGCHLD, func);
+         break;
+      }
       
-      case 0:     // Es el HIJO.
-         // guardar_datos_server();
-      break;   
-      
-      default:    // PID del hijo, es el PADRE.
-         // cargar_datos_server();
-      break;
-   }
+   } while ( endSrv == 0 );
    
    return 0;
 }
