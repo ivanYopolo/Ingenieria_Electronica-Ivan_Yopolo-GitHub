@@ -18,12 +18,14 @@
    // ########################################################
    // Defines
    // ########################################################
-   #define SIZE_BUF     4096
-   #define TAM_STR      4096
+   #define SIZE_BUF     1024
+   #define SIZE_FILE    36
+   // [ruta] + [CHILD_PID] + .txt + '\0' = SIZE_FILE. 
+   // 21 B   + 10 B        + 4 B  + 1 B  = 36 B.
+   
    
    // ########################################################
    // Funciones
    // ########################################################
-   void  count_lines( int arcFd, char *arcName );
-   void  write_local_file( char *arcName, int numLines );
+   void  infant_work( int arcFD, char *arcName );
 #endif

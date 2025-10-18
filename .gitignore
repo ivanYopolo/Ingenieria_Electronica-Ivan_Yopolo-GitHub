@@ -1,13 +1,25 @@
-*.rar
-*.zip
-*.Identifier
+# EJECUTABLES #
 *.bin
-*.[oa]
 *.out
 *.
+*.[oa]
+
+# COMPRIMIDOS #
+*.rar
+*.zip
+
+# DATA + DUMP + LOGS #
 *.txt
 *.log
 *.save
 *.swp
 *.data
 *.dat
+
+# MAKEFILES #
+*.GNUmakefile
+*.makefile
+*.Makefile
+
+# BASURA WSL (WINDOWS) #
+*.Identifier

@@ -10,6 +10,7 @@
  * b. Escribir el resultado ("El archivo X tiene Y líneas.") en el archivo de salida global.
  *
  * El proceso padre debe esperar a que todos los hijos terminen de manera ordenada (usando wait() o waitpid()).
+ *
  * Manejo de Señales: Implemente un mecanismo donde el proceso padre pueda enviar una señal SIGTERM a un hijo 
  * específico. El hijo debe implementar un manejador de señales para SIGTERM que, en lugar de terminar 
  * inmediatamente, imprima un mensaje ("Proceso [PID] recibido SIGTERM, finalizando tarea...") y luego 
@@ -22,28 +23,29 @@
  * Use kill() en el padre para enviar SIGTERM a un hijo aleatorio después de 5 segundos.
  */
 
-/* # Comando #
-clear; gcc -Wall --pedantic-errors \
-./includes/father/funciones_father.c ./includes/child/funciones_child.c \ 
-main.c -o prog.bin
+/* # Comando (NO dejar espacios después de '\') #
+clear; gcc -Wall --pedantic-errors main.c \
+   ./includes/father/funciones_father.c \
+   ./includes/child/funciones_child.c \
+   -o prog.bin
 */
 
 #include "./includes/child/funciones_child.h"
 #include "./includes/father/funciones_father.h"
 
-int        nChilds = 0;
+
+#define     SIZE_DIR    9
 
 
-void sig_hand();
-
-
+//------------------------------------------------------------------------
+// main - [ DONE ]
+//------------------------------------------------------------------------
 int main( int argc, char *argv[] ) {
-   pid_t       pid;
-   pid_t       *childPids;    // Array dinámico de PIDs.
-   pid_t       nChildsLocal = 0;
+   pid_t       pid = 1;
+   pid_t       *childrenPIDs;    // Array dinámico de PIDs.
    int         arcFd;
-   int         lines; 
-   char        notChild = 1;
+   char        fileDirectory[SIZE_DIR] = "./input/";
+   // char        notChild = 1;
    
    
    if ( argc < 2 ) { // Argumentos inválidos.
@@ -51,46 +53,42 @@ int main( int argc, char *argv[] ) {
       return 1;
    } else {
       
-      childPids = (pid_t *) malloc( sizeof(pid_t) );
+      childrenPIDs = (pid_t *) malloc( sizeof(pid_t) );
       
-      for ( int i = 1; (i < argc && notChild); i++ ) {
+      for ( int nFile = 1; (nFile < argc) && (pid != 0); nFile++ ) {
          
-         arcFd = open( argv[i], O_RDONLY );
+         arcFd = open( argv[nFile], O_RDONLY );
          
          if ( arcFd >= 1 ) {  // Archivo válido.
+            printf( "ARCHIVO VÁLIDO.\n" );
          
             // Hacer fork() por cada archivo reconocido.
             pid = fork();
-            if ( pid == -1 ) {      // ERROR.
-               perror( stderr, "[ ERROR: NO SE PUDO CREAR CHILD PROCESS. ]\n" );
+            
+            if ( pid == -1 ) {   // ERROR.
+               printf( "\n\n[ ERROR. ]\n" );
+               perror( "[ ERROR: NO SE PUDO CREAR CHILD PROCESS. ]\n" );
                exit(1);
-               
-            } else {
-               if ( pid == 0 ) {    // Child.
-                  count_lines( arcFd, argv[i] );
-                  notChild = 0;                    // Evita que el hijo se "reproduzca".
-               } else {             // Father (gets child PID).
-                  notChild = 1;                    
-                  nChilds++;                       // Empieza en 0 hijos.
-                  childPids = (pid_t *) reallocarray( childPids, nChilds, sizeof(pid_t) );
-                  childPids[nChilds - 1] = pid;    // Guarda el PID del hijo.
-                  
-                  signal(SIGTERM, sig_hand);       // La señal para terminar los hijos la maneja "sig_hand".
-               }
-            }  // PID válido.
-         }  // Archivo válido.
+            } 
+            
+            if ( pid == 0 ) {    // Child.
+               printf( "HIJO CREADO.\n" );
+               infant_work( arcFd, argv[nFile] );
+            } 
+            
+            if ( pid > 0 ) {     // Father (gets child PID).
+               printf( "PAPÁ CREADO.\t\tPID (hijo): %d\n", pid );
+               child_PID_management( childrenPIDs, pid );
+            } 
+         } else {  
+            printf( "\n[ ARCHIVO \"%s\" INVÁLIDO. ]\n\n", argv[nFile] );
+         }
       }  // Termina recorrido de archivos.
       
-      if ( notChild ) {    // El padre verifica que terminaron todos los hijos.
-         nChildsLocal = nChilds;
-      
-         // # Espera a que terminen los hijos #
-         while ( nChilds != 0 ) {   
-            sleep(1);  // Checkea cada 1 segundo.
-         }  // Sale: terminaron TODOS los hijos.
-         
-      
-         child_signal_management( nChildsLocal, childPids );
+      if ( pid != 0 ) {       // El padre verifica que terminaron todos los hijos.
+         // sleep(5);
+         printf( "\nTerminaron todos los procesos hijos.\n" );
+         father_work( childrenPIDs );
       }
    }
    
@@ -98,14 +96,5 @@ int main( int argc, char *argv[] ) {
 }
 
 
-//------------------------------------------------------------------------
-// sig_hand - [ DONE ]
-//------------------------------------------------------------------------
-/* Maneja la señal del hijo para que se cierre.
- * Decrementa el N° de hijos activos.
- */
-void sig_hand() {
-   wait( NULL );
-   nChilds--;
-}
+
 
