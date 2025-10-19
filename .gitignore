@@ -16,10 +16,5 @@
 *.data
 *.dat
 
-# MAKEFILES #
-*.GNUmakefile
-*.makefile
-*.Makefile
-
 # BASURA WSL (WINDOWS) #
 *.Identifier
