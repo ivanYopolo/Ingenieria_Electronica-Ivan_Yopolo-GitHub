@@ -34,20 +34,14 @@
  * se manejan con "fork()".
  */
 
-#include "./includes/Equipamiento_medico/client/funciones_cliente.h"
 
-/* # Comando #
-clear; gcc -Wall --pedantic-errors main_client.c \
-./includes/debugging.c \
-./includes/Equipamiento_medico/client/funciones_cliente.c \
-./includes/GetString_console/getstring-lib.c \
-./includes/Manejo_Listas/Doble/lista_doble-lib.c \
-./includes/Sockets/sock-lib.c \
--o client.bin
-*/
+// ########################################################
+// Includes
+// ########################################################
+#include "../inc/funciones_cliente.h"
+
    
-/*
- * # ordenamiento[2] #
+/* # ordenamiento[2] #
  * [0]: Dato a ordenar.
  * [1]: Sentido de ordenamiento.
 */
@@ -67,7 +61,7 @@ int main( int argc, char *argv[] ) {
    int      portRD;
    int      portWR;
 
-   srvIP[SIZE_IP] = '\0';
+   srvIP[SIZE_IP - 1] = '\0';
    
    switch ( argc ) {
       case 2:  // Hay IP, faltan "portRD" & "portWR".
@@ -159,7 +153,6 @@ int main( int argc, char *argv[] ) {
   
    // # Cierre de archivos y liberación de memoria #
    close_session( startNode, fechaTempStr );
-   
    
    return 0;
 }

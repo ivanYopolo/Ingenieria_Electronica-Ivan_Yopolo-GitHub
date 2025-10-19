@@ -15,11 +15,10 @@
 	#include <ctype.h>
    #include <time.h>
    
-   #include "../../../includes/GetString_console/getstring-lib.h"       // Obtener string del kernel.
-   #include "../../../includes/Manejo_Listas/Doble/lista_doble-lib.h"   // Manejo de listas dobles.
-   #include "../../debugging.h"  // Debugging de funciones.
-   #include "../../Sockets/sock-lib.h"
-   // #include "STRUCT"
+   #include "debugging.h"  			// Debugging de funciones.
+   #include "getstring-lib.h" 		// Obtener string del kernel.
+   #include "lista_doble-lib.h"   	// Manejo de listas dobles.
+   #include "sock-lib.h"				// Librería de sockets (MOD).
    
    // ########################################################
    // Defines
@@ -30,12 +29,14 @@
    #define TRUE            1
    #define FALSE           0
    #define MAX_SIZE_NAME   256
+	#define SIZE_DATA_DIR	16
    
 
    // ########################################################
    // Funciones
    // ########################################################
-   char cargar_datos_server( int portRD );
-   char guardar_datos_server( int portWR );
+   void cargar_datos_server( int portRD );
+   void guardar_datos_server( int portWR );
+	// void end_session();
 #endif
 

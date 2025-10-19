@@ -29,17 +29,7 @@
  * la fecha de la base de datos en el siguiente formato: DD/MM/YYYY.
  */
  
-/* # Comando #
-clear; gcc -Wall --pedantic-errors main_client.c \
-./includes/debugging.c \
-./includes/Equipamiento_medico/client/funciones_cliente.c \
-./includes/GetString_console/getstring-lib.c \
-./includes/Manejo_Listas/Doble/lista_doble-lib.c \
-./includes/Sockets/sock-lib.c \
--o client.bin
-*/
-
-#include "funciones_cliente.h"
+#include "../inc/funciones_cliente.h"
 
 
 // ########################################################
@@ -967,8 +957,6 @@ void guardar_datos( Nodo_t *startNode, char *fechaAct ) {
  *
  * # Envía al servidor #
  * - (#) Nombre del archivo a leer.
- * - (##) 1: TERMINA EL SERVIDOR.
- * - (##) 0: continúa su funcionamiento normal.
  * 
  * # Recibe del servidor #
  * - (#) 1: si el archivo existe.
@@ -979,18 +967,20 @@ void guardar_datos( Nodo_t *startNode, char *fechaAct ) {
  */
 char * cargar_datos_remoto( int portRD, char *srvIP, Nodo_t **startNode, int sentido, \
                             int (*criterio_orden)( Nodo_t *backNode, Nodo_t *frontNode, int sentido ) ) {
-	int      sockClient;       // File Descriptor para sockets.
-	int      numbytes;         // Contendrá el número de bytes recibidos por "read()".
+	int      sockClient;       		// File Descriptor para sockets.
+	int      numBytes;         		// Contendrá el número de bytes recibidos por "read()".
+   int      mergeSelection = 0;
    char     buf[MAXDATASIZE];
    char     *fechaTemp = NULL;
-   char     *nombreArchivo = NULL;
-   char     directorio[8] = "./data/";
-   char     *rutaArchivo = NULL;
-   // Dato_t   datoInput;
+   char     directorio[SIZE_DATA_DIR] = "../data_server/";
+   char     *nombreArchivo = NULL;	// Nombre del archivo; input del usuario.
+   char     *rutaArchivo = NULL;		// Ruta completa del archivo + extensión.
+   Nodo_t   *nodoX = NULL;				// Nodo temporal (cursor) para recorrer lista.
    
+   fechaTemp = (char *) malloc( TAM_DATE * sizeof(char) );
+   fechaTemp[TAM_DATE - 1] = '\0';
    
    // ### Conecta con el servidor ###
-   // sockClient = conectar( arguments, portStr );
    sockClient = conectar( srvIP, portRD );
    if ( sockClient < 1 ) {
       printf( "\n[ ERROR: NO SE PUDO CONECTAR AL SERVIDOR. ]\n\n" );
@@ -1005,12 +995,11 @@ char * cargar_datos_remoto( int portRD, char *srvIP, Nodo_t **startNode, int sen
          
          if ( nombreArchivo == NULL ) {
             printf( "\n[ ERROR: NOMBRE DE ARCHIVO INVÁLIDO. ]\n\n" );
-         } else {
-            // Agregarle al nombre la ruta hasta "./data/" (+ 7 B).
-            rutaArchivo = (char *) malloc( strlen( nombreArchivo ) + strlen( directorio ) + 1 );
-            strcpy( rutaArchivo, directorio );
-            strcpy( rutaArchivo + strlen( directorio ), nombreArchivo );
-            rutaArchivo[strlen( nombreArchivo ) + strlen( directorio )] = '\0';
+         } else {	// Crea la ruta completa del archivo, con directorio y extensión.
+				// SIZE_DATA_DIR incluye '\0'.
+            rutaArchivo = (char *) malloc( ( strlen( nombreArchivo ) + SIZE_DATA_DIR ) * sizeof(char) );
+				mempcpy( mempcpy( rutaArchivo, directorio, SIZE_DATA_DIR - 1 ), nombreArchivo, strlen( nombreArchivo ) + 1 );
+            // rutaArchivo[strlen( nombreArchivo ) + SIZE_DATA_DIR - 1] = '\0';
             
             // # Abre el archivo #.
             numBytes = write( sockClient, rutaArchivo, strlen( rutaArchivo ) + 1 );    // Envía la ruta a buscar el archivo.
@@ -1103,8 +1092,6 @@ char * cargar_datos_remoto( int portRD, char *srvIP, Nodo_t **startNode, int sen
  * # Envía al servidor #
  * - (#) Nombre del archivo a guardar.
  * - DATOS DE CADA NODO DE LA LISTA ENTERA.
- * - (##) 1: TERMINA EL SERVIDOR.
- * - (##) 0: continúa su funcionamiento normal.
  *
  * # Recibe del servidor #
  * - (#) 1: si el archivo ya existe (nombre repetido).
@@ -1112,12 +1099,11 @@ char * cargar_datos_remoto( int portRD, char *srvIP, Nodo_t **startNode, int sen
  */
 void guardar_datos_remoto( int portRD, char *srvIP, Nodo_t *startNode, char *fechaAct ) {
    int      sockClient;       // File Descriptor para sockets.
-	int      numbytes;         // Contendrá el número de bytes recibidos por "read()".
+	int      numBytes;         // Contendrá el número de bytes recibidos por "read()".
    char     buf[MAXDATASIZE];
-   int      fdData = 0;
    char     *nombreArchivo = NULL;
    char     *rutaArchivo = NULL;
-   char     directorio[8] = "./data/";
+   char     directorio[SIZE_DATA_DIR] = "../data_server/";
    int      sobreescribir = 0;
    Nodo_t   *nodoX = NULL;
    
@@ -1159,17 +1145,23 @@ void guardar_datos_remoto( int portRD, char *srvIP, Nodo_t *startNode, char *fec
                // # LOG #
                dprintf( fdLog, "* Nombre archivo:   \t%s\n", nombreArchivo );
                
+					// SIZE_DATA_DIR incluye '\0'.
+					rutaArchivo = (char *) malloc( ( strlen( nombreArchivo ) + SIZE_DATA_DIR ) * sizeof(char) );
+					mempcpy( mempcpy( rutaArchivo, directorio, SIZE_DATA_DIR - 1 ), nombreArchivo, strlen( nombreArchivo ) + 1 );
+					// rutaArchivo[strlen( nombreArchivo ) + SIZE_DATA_DIR - 1] = '\0';
+
+					/*
                // Agregarle al nombre la ruta hasta "./data/" (+ 7 B).
-               rutaArchivo = (char *) malloc( strlen( nombreArchivo ) + strlen( directorio ) + 1 );
+               rutaArchivo = (char *) malloc( strlen( nombreArchivo ) + SIZE_DATA_DIR );
                strcpy( rutaArchivo, directorio );
                strcpy( rutaArchivo + strlen( directorio ), nombreArchivo );
                rutaArchivo[strlen( nombreArchivo ) + strlen( directorio )] = '\0';
-               
+               */
                // # LOG #
                dprintf( fdLog, "* Ruta:\t\t%s \n", rutaArchivo );
                
                numBytes = read( sockClient, buf, 1 );
-               if ( *buf == 1 ) {   // Repetido
+               if ( *buf == 1 && numBytes == 1 ) {   // Repetido
                   // # LOG #
                   dprintf( fdLog, "* Sobreescritura   =   " );
                   
@@ -1201,6 +1193,7 @@ void guardar_datos_remoto( int portRD, char *srvIP, Nodo_t *startNode, char *fec
                      break;
                   }  // Switch de sobreescritura.
                }  // Evaluación nombres repetidos.
+					// Evaluar numBytes < 1 WHILE().
             }  // Ingreso de nombre válido.
          } while ( nombreArchivo == NULL || rutaArchivo == NULL ); 
          // Nombró correctamente el archivo.

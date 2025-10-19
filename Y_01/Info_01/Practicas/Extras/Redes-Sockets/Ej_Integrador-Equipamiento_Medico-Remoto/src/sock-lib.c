@@ -1,4 +1,4 @@
-#include "sock-lib.h"
+#include "../inc/sock-lib.h"
 
 
 //------------------------------------------------------------------------
@@ -28,14 +28,13 @@ int conectar( char *ip, int port )
 
    /* Establecemos "their_addr" con la direccion del server. */
 	their_addr.sin_family   = AF_INET;
-	// their_addr.sin_port     = ( argc == 2 ) ? htons( PORT ) : htons( atoi( argv[2] ) );
-   if ( argc == 2 ) {
+   if ( port < 1 ) {
       their_addr.sin_port = htons( DEFAULT_PORT );
    } else {
       their_addr.sin_port = htons( port );
    }
-	their_addr.sin_addr    = *((struct in_addr *)he->h_addr);
-	bzero(&(their_addr.sin_zero), 8);
+	their_addr.sin_addr    = *((struct in_addr *) he->h_addr);
+	bzero( &(their_addr.sin_zero), 8 );
 
    /* Intentamos conectarnos con el servidor. */
 	if ( connect( sockfd, (struct sockaddr *) &their_addr, sizeof (struct sockaddr) ) == -1 )
@@ -110,6 +109,8 @@ int open_conection( struct sockaddr_in *srv_addr, int port )
 /* Acepta pedidos según un file descriptor de entrada donde se aceptan
  * conexiones de entrada.
  *
+ * [ BLOQUEANTE ].
+ *
  * El nuevo file descriptor por el cliente específico lo devuelve en su
  * return.
  */
@@ -129,3 +130,44 @@ int aceptar_pedidos( int sockfd )
 		return newfd;
 	}
 }
+
+
+//------------------------------------------------------------------------
+// aceptar_pedidos_async - [ SERVER ]
+//------------------------------------------------------------------------
+/* Acepta pedidos según un file descriptor de entrada donde se aceptan
+ * conexiones de entrada.
+ *
+ * [ ASÍNCRONO ]. 
+ * Flags: EAGAIN; EINPROGRESS
+ *
+ * # Información #
+ * https://stackoverflow.com/questions/69043581/linux-socket-set-non-blocking-using-o-nonblock#comment122040284_69043581
+ * https://forums.freebsd.org/threads/behavior-of-connect-with-o_nonblock-on-a-unix-domain-socket.75963/
+ *
+ * El nuevo file descriptor por el cliente específico lo devuelve en su
+ * return.
+ */
+int aceptar_pedidos_async( int sockfd )
+{
+	int                  newfd; 	/* Por este socket duplicado del inicial se transaccionarÃ¡*/
+   struct sockaddr_in   their_addr;  /* Contendra la direccion IP y nÃºmero de puerto del cliente */
+	unsigned int         sin_size = sizeof (struct sockaddr_in);
+
+
+	// Cambia el file descriptor para que no sea bloqueante.
+	// fcntl( sockfd, F_SETSIG, O_NONBLOCK );
+
+	/* Se espera por conexiones */
+	newfd = accept( sockfd, (struct sockaddr *) &their_addr, &sin_size );
+	if ( newfd == EAGAIN ) {
+		printf( "[ SERVER ] No se recibió ningun pedido de conexión (%d). Saliendo...\n", newfd );
+	} else if ( newfdd == EINPROGRESS ) {
+		printf( "[ SERVER ] No se recibió ningun pedido de conexión (%d). Saliendo...\n", newfd );
+	} else {
+		printf( "[ SERVER ] nueva conexión desde:   %s\n", inet_ntoa( their_addr.sin_addr ) );
+	}
+	
+	return newfd;
+}
+

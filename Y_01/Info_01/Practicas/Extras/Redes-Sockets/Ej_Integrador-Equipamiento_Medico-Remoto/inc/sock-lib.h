@@ -30,7 +30,8 @@
 
    // ### SERVIDOR ###
    int	open_conection( struct sockaddr_in *srv_addr, int port );   // Función que crea la conexión.
-   int	aceptar_pedidos( int sockfd );	                           // Función que acepta una conexión entrante.
+   int	aceptar_pedidos( int sockfd );	                           // Función que acepta una conexión entrante [ BLOQUEANTE ].
+   int	aceptar_pedidos_async( int sockfd );	                     // Función que acepta una conexión entrante [ ASÍNCRONO ] .
    
    // ### CLIENTE ###
    int	conectar( char *ip, int port );                             // Recibe el PUERTO como texto.

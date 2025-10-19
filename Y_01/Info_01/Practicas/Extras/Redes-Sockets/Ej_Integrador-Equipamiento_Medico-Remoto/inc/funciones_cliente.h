@@ -14,9 +14,10 @@
 	#include <ctype.h>
    #include <time.h>
    
-   #include "../../../includes/GetString_console/getstring-lib.h"       // Obtener string del kernel.
-   #include "../../../includes/Manejo_Listas/Doble/lista_doble-lib.h"   // Manejo de listas dobles.
-   #include "../../debugging.h"  // Debugging de funciones.
+   #include "debugging.h"  		// Debugging de funciones.
+   #include "getstring-lib.h"		// Obtener string del kernel.
+   #include "lista_doble-lib.h"	// Manejo de listas dobles.
+   #include "sock-lib.h"			// Librería de sockets (MOD).
    
    
    // ########################################################
@@ -33,7 +34,10 @@
    #define PORT_WR            3498     // Puerto escritura (WRITE).
    #define SIZE_IP            16       // IPs: 0.0.0.0 ~ 255.255.255.255
    #define SIZE_PORT          6        // Ports: 0 ~ 65535.
-
+   #define MAXDATASIZE        4096
+	#define SIZE_DATA_DIR		16
+	
+	
    // ########################################################
    // Funciones
    // ########################################################

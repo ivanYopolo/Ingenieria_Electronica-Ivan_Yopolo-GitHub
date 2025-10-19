@@ -34,37 +34,34 @@
  * se manejan con "fork()".
  */
 
-#include "./includes/Equipamiento_medico/funciones_servidor.h"
 
-/* # Comando SERVIDOR #
-clear; gcc -Wall --pedantic-errors main_server.c \
-./includes/debugging.c \
-./includes/Equipamiento_medico/funciones_servidor.c \
-./includes/GetString_console/getstring-lib.c \
-./includes/Manejo_Listas/Doble/lista_doble-lib.c \
-./includes/Sockets/sock-lib.c \
--o server.bin
-*/
+// ########################################################
+// Includes
+// ########################################################
+#include "../inc/funciones_servidor.h"
 
-/* # Probando conexión con "net-cat" #
+
+// ########################################################
+// Variables GLOBLALES
+// ########################################################
+// char                 endSrv = 0;
+// char                 endChild = 0;
+
+
+/* ### Probando conexión con "net-cat" ###
  * IP (loopback): 127.0.0.1
  * Puerto: [ VER PUERTO POR FUNCIÓN ].
    nc 127.0.0.1 [ VER PUERTO POR FUNCIÓN ]
  */
 
-void func() {
-   wait(NULL);
-}
-
 // Hacer "fork()" para que 2 procesos manejen puertos distintos.
 // Servidor solamente toma 2 PUERTOS.
 int main( int argc, char *argv[] ) {
-   // struct sockaddr_in   srvAddr;   // Direcciones del servidor.
    int                  portRD;     // Puerto de lectura (de archivos).
    int                  portWR;     // Puerto de escritura (guardado de archivos).
    pid_t                pid;        // PID del fork (padre-hijo).
-   char                 endSrv = 0;
    
+	
    switch ( argc ) {
       case 1:  // No pasó puertos.
          portRD = PORT_RD;                   // Agarra puerto default de lectura (READ).
@@ -83,24 +80,25 @@ int main( int argc, char *argv[] ) {
    }
    
    pid = fork();
-   do {
-      switch ( pid ) {
-         case -1:    // ERROR.
-            perror( "[ ERROR: NO SE PUDO CREAR EL HIJO CON fork(). ]" ); 
-            exit(1);
-         break;
-         
-         case 0:     // HIJO.
-            endSrv = guardar_datos_server( portWR );
-         break;   
-         
-         default:    // PADRE; obtiene el PID del hijo.
-            endSrv = cargar_datos_server( portRD );
-            signal(SIGCHLD, func);
-         break;
-      }
-      
-   } while ( endSrv == 0 );
+	switch ( pid ) {
+		case -1:    // ERROR.
+			perror( "[ ERROR: NO SE PUDO CREAR EL HIJO CON fork(). ]\n" ); 
+			exit(1);
+		break;
+		
+		case 0:     // HIJO.
+			usleep(50);
+			guardar_datos_server( portWR );
+		break;   
+		
+		default:    // PADRE; obtiene el PID del hijo.
+			cargar_datos_server( portRD, pid );
+		break;
+	}
+	
+	// Recibió Ctrl+C:
+	// ...
+	// end_session();
    
    return 0;
 }

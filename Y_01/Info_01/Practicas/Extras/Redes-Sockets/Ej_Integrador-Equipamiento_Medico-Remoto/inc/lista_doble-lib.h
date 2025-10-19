@@ -7,14 +7,17 @@
 	#include <stdlib.h>
 	#include <string.h>	
 	#include <ctype.h>
-   #include "datos.h"            // Donde se alojan las estructuras tipo Dato_t.
-   #include "../../debugging.h"  // Para hacer debugging de las funciones.
+	
+   #include "struct_datos.h"		// Donde se alojan las estructuras tipo Dato_t.
+   #include "debugging.h"  		// Para hacer debugging de las funciones.
    
+	
    // ########################################################
    // Defines
    // ########################################################
    #define ORD_ASC            1
    #define ORD_DES            2
+
 
    // ########################################################
    // Funciones

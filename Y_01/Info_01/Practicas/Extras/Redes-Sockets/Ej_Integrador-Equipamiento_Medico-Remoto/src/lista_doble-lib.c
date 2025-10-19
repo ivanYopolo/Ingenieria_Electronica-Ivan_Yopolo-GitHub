@@ -1,5 +1,5 @@
-#include "lista_doble-lib.h"
-#include "../../debugging.h"
+#include "../inc/lista_doble-lib.h"
+#include "../inc/debugging.h"
 
 
 // ########################################################

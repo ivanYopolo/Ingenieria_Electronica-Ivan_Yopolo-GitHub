@@ -6,27 +6,41 @@
 ################################################################
 # VARIABLES #
 ################################################################
-CC         = gcc
-DEP_FLAGS  = -MD -MP
-OBJ_DIR    = ../obj
-BIN_DIR    = ../bin
-INC_DIR    = ../inc
-SRC_DIR    = .
-TARGET     = prog
-TARGET_DIR = $(BIN_DIR)/$(TARGET).bin
-OBJS       = $(OBJ_DIR)/main.o \
-			 	 $(OBJ_DIR)/funciones_father.o \
-			 	 $(OBJ_DIR)/funciones_child.o
-			  
-CFLAGS     = -Wall --pedantic-errors -I$(INC_DIR)
-LDFLAGS    = -Wall --pedantic-errors 
+CC             = gcc
+DEP_FLAGS      = -MD -MP
+OBJ_DIR        = ../obj
+BIN_DIR        = ../bin
+INC_DIR        = ../inc
+SRC_DIR        = .
+# CLIENT #
+TARGET_CL      = prog_cl
+TARGET_CL_DIR  = $(BIN_DIR)/$(TARGET_CL).bin
+OBJS_CL        = $(OBJ_DIR)/debugging.o \
+                 $(OBJ_DIR)/funciones_cliente.o \
+                 $(OBJ_DIR)/getstring-lib.o \
+                 $(OBJ_DIR)/lista_doble-lib.o \
+                 $(OBJ_DIR)/main_client.o \
+                 $(OBJ_DIR)/sock-lib.o
+# SERVER #
+TARGET_SRV     = prog_srv
+TARGET_SRV_DIR = $(BIN_DIR)/$(TARGET_SRV).bin
+OBJS_SRV       = $(OBJ_DIR)/debugging.o \
+                 $(OBJ_DIR)/funciones_servidor.o \
+                 $(OBJ_DIR)/getstring-lib.o \
+                 $(OBJ_DIR)/lista_doble-lib.o \
+                 $(OBJ_DIR)/main_server.o \
+                 $(OBJ_DIR)/sock-lib.o
+# Compiler Flags #
+CFLAGS         = -Wall --pedantic-errors -I$(INC_DIR) -c -o
+# Linker Flags #
+LDFLAGS        = -Wall --pedantic-errors 
 
 
 ################################################################
 # Target PRINCIPAL #
 ################################################################
 #
-all : $(TARGET)
+all : $(TARGET_SRV) $(TARGET_CL) Makefile
 
 
 ################################################################
@@ -34,18 +48,32 @@ all : $(TARGET)
 ################################################################
 #
 # mkdir -p crea la carpeta si no existe; sinó, ignora el comando.
-$(TARGET) : $(OBJS)
+# CLIENT #
+$(TARGET_CL) : $(OBJS_CL)
 	@echo ''
 	@echo '#################################################################'
-	@echo '###   Linkeando...   ###'
+	@echo '###   Linkeando (CLIENT) ...   ###'
 	@echo ''
 	@mkdir -p $(BIN_DIR)
-	$(CC) $(LDFLAGS) -o $(TARGET_DIR) $(OBJS)
+	$(CC) $(LDFLAGS) -o $(TARGET_CL_DIR) $(OBJS_CL)
 	@echo ''
 	@echo '###   Terminó de linkear.   ###'
 	@echo '#################################################################'
 	@echo ''
 
+# SERVER #
+$(TARGET_SRV) : $(OBJS_SRV)
+	@echo ''
+	@echo '#################################################################'
+	@echo '###   Linkeando (SERVER) ...   ###'
+	@echo ''
+	@mkdir -p $(BIN_DIR)
+	$(CC) $(LDFLAGS) -o $(TARGET_SRV_DIR) $(OBJS_SRV)
+	@echo ''
+	@echo '###   Terminó de linkear.   ###'
+	@echo '#################################################################'
+	@echo ''
+	
 
 ################################################################
 # Compilado #
@@ -53,17 +81,19 @@ $(TARGET) : $(OBJS)
 #
 # Pattern Rules & Variables automáticas (Linker) #
 # Automáticamente hace el archivo objeto de TODO .c en el proyecto. 
-# $<	sustituye por el nombre del primer pre-requisito.
-# $^	sustituye por el nombre de TODOS los pre-requisitos, en orden.
-# $@ 	sustituye por el nombre del INPUT (target de la regla).
-# mkdir -p crea la carpeta si no existe; sinó, ignora el comando.
+# $<   					sustituye por el nombre del primer pre-requisito.
+# $^   					sustituye por el nombre de TODOS los pre-requisitos, en orden.
+# $@   					sustituye por el nombre del INPUT (target de la regla).
+# mkdir -p	 			crea la carpeta si no existe; sinó, ignora el comando.
+# gcc -c 				compila pero no linkea, crea objetos *.o.
+# gcc -o [archivo] 	linkea y genera [archivo].
 $(OBJ_DIR)/%o : $(SRC_DIR)/%c
 	@echo ''
 	@echo '#################################################################'
 	@echo '###   Compilando $^...   ###'
 	@echo ''
 	@mkdir -p $(OBJ_DIR)
-	$(CC) -c $(DEP_FLAGS) $(CFLAGS) -o $@ $^
+	$(CC) $(DEP_FLAGS) $(CFLAGS) $@ $^
 	@echo ''
 	@echo '###   Terminó de compilar.   ###'
 	@echo '#################################################################'
@@ -83,18 +113,15 @@ $(OBJ_DIR)/%o : $(SRC_DIR)/%c
 # Clean #
 ################################################################
 #
-# .PHONY evita conflictos con archivos/directorios de nombre
-# "clean".
+# El ".PHONY" evita conflictos con archivos de mismo nombre que
+# los TARGETS.
 # Cuando se ejecuta por terminal "make clean", 
 # borra las carpetas no útiles (objetos y binarios).
-.PHONY : clean
+.PHONY : clean $(TARGET_SRV) $(TARGET_CL) all
 clean : 
 	@echo ''
 	@echo '#################################################################'
-	@echo '###   Removiendo $(OBJ_DIR)...   ###'
-	@rm -r $(OBJ_DIR) 
-	@echo ''
-	@echo '###   Removiendo $(BIN_DIR)...   ###'
-	@rm -r $(BIN_DIR)
+	@echo '###   Removiendo $(OBJ_DIR) $(BIN_DIR)...   ###'
+	@rm -r $(OBJ_DIR) $(BIN_DIR)
 	@echo '#################################################################'
 	@echo ''
