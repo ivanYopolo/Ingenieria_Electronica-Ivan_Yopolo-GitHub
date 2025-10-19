@@ -30,11 +30,11 @@ clear; gcc -Wall --pedantic-errors main.c \
    -o prog.bin
 */
 
-#include "./includes/child/funciones_child.h"
-#include "./includes/father/funciones_father.h"
+#include "../inc/funciones_child.h"
+#include "../inc/funciones_father.h"
 
 
-#define     SIZE_DIR    9
+#define     SIZE_DIR    10
 
 
 //------------------------------------------------------------------------
@@ -44,8 +44,7 @@ int main( int argc, char *argv[] ) {
    pid_t       pid = 1;
    pid_t       *childrenPIDs;    // Array dinámico de PIDs.
    int         arcFd;
-   char        fileDirectory[SIZE_DIR] = "./input/";
-   // char        notChild = 1;
+   char        fileDirectory[SIZE_DIR] = "../input/";
    
    
    if ( argc < 2 ) { // Argumentos inválidos.
@@ -56,6 +55,10 @@ int main( int argc, char *argv[] ) {
       childrenPIDs = (pid_t *) malloc( sizeof(pid_t) );
       
       for ( int nFile = 1; (nFile < argc) && (pid != 0); nFile++ ) {
+			// tempCursor = mempcpy( localFile, localFileNameStart, strlen( localFileNameStart ) );
+			// sprintf( tempCursor, "%d", childPid );
+			// sprintf( tempCursor + sprintf( tempCursor, "%d", childPid ), ".txt" );
+		
          
          arcFd = open( argv[nFile], O_RDONLY );
          

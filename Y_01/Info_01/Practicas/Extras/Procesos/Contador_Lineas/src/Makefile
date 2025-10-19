@@ -1,0 +1,98 @@
+# Con el "gcc -c" se genera un archivo objeto *.o.
+# Así, no se tienen que recompilar TODOS los 
+# *.c para volver a hacer el ejecutable, por cada cambio hecho.
+
+
+################################################################
+# VARIABLES #
+################################################################
+CC			  = gcc
+DEP_FLAGS  = -MD -MP
+OBJ_DIR    = ../obj
+BIN_DIR    = ../bin
+INC_DIR    = ../inc
+SRC_DIR    = .
+TARGET     = prog
+TARGET_DIR = $(BIN_DIR)/$(TARGET).bin
+OBJS		  = $(OBJ_DIR)/main.o \
+			 	 $(OBJ_DIR)/funciones_father.o \
+			 	 $(OBJ_DIR)/funciones_child.o
+			  
+CFLAGS	  = -Wall --pedantic-errors -I$(INC_DIR)
+LDFLAGS	  = -Wall --pedantic-errors 
+
+
+################################################################
+# Target PRINCIPAL #
+################################################################
+#
+all : $(TARGET)
+
+
+################################################################
+# Linkeo #
+################################################################
+#
+# mkdir -p crea la carpeta si no existe; sinó, ignora el comando.
+$(TARGET) : $(OBJS)
+	@echo ''
+	@echo '#################################################################'
+	@echo '###   Linkeando...   ###'
+	@echo ''
+	@mkdir -p $(BIN_DIR)
+	$(CC) $(LDFLAGS) -o $(TARGET_DIR) $(OBJS)
+	@echo ''
+	@echo '###   Terminó de linkear.   ###'
+	@echo '#################################################################'
+	@echo ''
+
+
+################################################################
+# Compilado #
+################################################################
+#
+# Pattern Rules & Variables automáticas (Linker) #
+# Automáticamente hace el archivo objeto de TODO .c en el proyecto. 
+# $<	sustituye por el nombre del primer pre-requisito.
+# $^	sustituye por el nombre de TODOS los pre-requisitos, en orden.
+# $@ 	sustituye por el nombre del INPUT (target de la regla).
+# mkdir -p crea la carpeta si no existe; sinó, ignora el comando.
+$(OBJ_DIR)/%o : $(SRC_DIR)/%c
+	@echo ''
+	@echo '#################################################################'
+	@echo '###   Compilando $^...   ###'
+	@echo ''
+	@mkdir -p $(OBJ_DIR)
+	$(CC) -c $(DEP_FLAGS) $(CFLAGS) -o $@ $^
+	@echo ''
+	@echo '###   Terminó de compilar.   ###'
+	@echo '#################################################################'
+	@echo ''
+
+
+################################################################
+# Dependencias #
+################################################################
+#
+# Para incluir dependencias *.h y sus cambios automáticamente #
+# Ligado al -MD.
+-include $(OBJ_DIR)/*.d
+
+
+################################################################
+# Receta (phony) #
+################################################################
+#
+# Cuando se ejecuta por terminal "make clean", 
+# borra las carpetas no útiles (objetos y binarios).
+.PHONY : clean
+clean : 
+	@echo ''
+	@echo '#################################################################'
+	@echo '###   Removiendo $(OBJ_DIR)...   ###'
+	@rm -r $(OBJ_DIR) 
+	@echo ''
+	@echo '###   Removiendo $(BIN_DIR)...   ###'
+	@rm -r $(BIN_DIR)
+	@echo '#################################################################'
+	@echo ''

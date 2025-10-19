@@ -26,7 +26,7 @@
 // ########################################################
 // Includes
 // ########################################################
-#include "funciones_child.h"
+#include "../inc/funciones_child.h"
 
 
 // ########################################################
@@ -138,7 +138,7 @@ void write_local_file( char *arcName, int numLines ) {
    int      localFd;
    char     *tempCursor;
    pid_t    childPid;
-   char     localFileNameStart[22] = "./archivos/CHILD-";
+   char     localFileNameStart[23] = "../archivos/CHILD-";
    char     localFile[SIZE_FILE]; 
    // [ruta] + [CHILD_PID] + .txt + '\0' = SIZE_FILE. 
    // 21 B   + 10 B        + 4 B  + 1 B  = 36 B.

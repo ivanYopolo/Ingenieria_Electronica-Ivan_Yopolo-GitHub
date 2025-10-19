@@ -26,7 +26,7 @@
 // ########################################################
 // Includes
 // ########################################################
-#include "funciones_father.h"
+#include "../inc/funciones_father.h"
 
 
 // ########################################################
@@ -137,7 +137,7 @@ void write_global_file( int maxChilds, pid_t childrenPIDs[] ) {
    char     localFile[SIZE_FILE]; 
    // [ruta] + [CHILD_PID] + .txt + '\0'. 
    // 21 B   + 10 B        + 4 B  + 1 B.
-   char     localFileNameStart[22] = "./archivos/CHILD-";
+   char     localFileNameStart[23] = "../archivos/CHILD-";
    
    
    // Archivo global.
