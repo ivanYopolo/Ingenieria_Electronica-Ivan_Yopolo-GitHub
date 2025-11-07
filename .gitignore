@@ -18,3 +18,6 @@
 
 # BASURA WSL (WINDOWS) #
 *.Identifier
+
+# VS/VS CODE #
+*.json
