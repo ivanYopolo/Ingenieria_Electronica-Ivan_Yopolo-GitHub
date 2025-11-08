@@ -13,8 +13,8 @@
 // #define PORT			314159
 
 
-extern int 			sockfd; /* File Descriptor del socket por el que el servidor "escuchará" conexiones*/
-extern int			working = 1;
+int 			sockfd; /* File Descriptor del socket por el que el servidor "escuchará" conexiones*/
+int			working = 1;
 
 void 	signal_handler() {
 	working = 0;
@@ -22,11 +22,11 @@ void 	signal_handler() {
 }
 
 struct args {
-	int socket;
-	char clt_cnt;
-	char message[STRSIZE];
-	char msg_cnt;
-	void *ret;
+	int 	cltfd;
+	char 	cltCount;
+	char 	msg[STRSIZE];
+	char 	msgCount;
+	void 	*returnValue;		// Valor de retorno.
 };
 
 
@@ -34,25 +34,33 @@ struct args {
 // do_something
 //------------------------------------------------------
 void *do_something( void *input ) {
-	int i, j;
+	int i; 
+	int j;
 
 	for ( i = 0; i < LIMIT; i++ ) {
 		for ( j = 0; j < DELAY; j++ ) {
 			usleep( 1000 );
 		}
-		((struct args*)input)->msg_cnt++;
 		
-		snprintf( ((struct args*)input)->message, STRSIZE, "Client: %d. Message: %d.\n", ((struct args*)input)->clt_cnt, ((struct args*)input)->msg_cnt );
+		( ((struct args*)input)->msgCount )++;
 		
-		if ( write( ((struct args*)input)->socket, ((struct args*)input)->message, STRSIZE) == -1 ) {
+		snprintf( ((struct args*)input)->msg, STRSIZE, "Client: %d. Message: %d.\n", \
+					 ((struct args*)input)->cltCount, ((struct args*)input)->msgCount );
+		
+		int nBytes = write( ((struct args*)input)->cltfd, ((struct args*)input)->msg, STRSIZE );
+		if ( nBytes == -1 ) {
 			perror( "Error escribiendo mensaje en socket" );
 			exit(1);
 		}
 	}
 
-	close( ((struct args*)input)->socket );
-	*(int *)((struct args*)input)->ret = 100 * (((struct args*)input)->clt_cnt + 1);
-	pthread_exit( ((struct args*)input)->ret );
+	close( ((struct args*)input)->cltfd );	// Cierra el socket.
+	
+	// Valor de retorno es el N° del cliente por 100.
+	*(int *)((struct args*)input)->returnValue = 100 * ( ((struct args*)input)->cltCount + 1 );
+	
+	// Sale con "pthread_exit()" y su valor de retorno correspondiente.
+	pthread_exit( ((struct args*)input)->returnValue );
 
 	return NULL;
 }
@@ -62,55 +70,69 @@ void *do_something( void *input ) {
 // main
 //------------------------------------------------------
 int main( int argc, char *argv[] ) {
-	int 			err;
-	int 			thr_cnt;
-	pthread_t 	tid[BACKLOG];
 	int			port;
-	struct 		sockaddr_in my_addr;	/* contendrá la dirección IP y el número de puerto local */
-
+	struct 		sockaddr_in my_addr;		// Contendrá la dirección IP y el número de puerto local.
 	int 			i;
-	int 			*ptr[BACKLOG];
-	struct args svr[BACKLOG];
-	int 			ret[BACKLOG];
+
+	int 			err;
+	int 			threadCount;
+	pthread_t 	tid[BACKLOG];					// Array de Threads IDs (TIDs).
+	// int 			*ptr[BACKLOG];				// Array de valores de retorno de los threads.
+	struct args svr[BACKLOG];					// Argumentos a pasar a la función del thread; array de estructuras.
+	int 			returnValueLocal[BACKLOG];	// Array de valores de retorno de los threads.
 	
 
 	if ( argc < 2 ) {
-		fprintf( stderr, "[ Uso: %s PORT ]\n", argv[0] );
+		fprintf( stderr, 
+					"######################################################\n"
+					"[ Uso: %s PORT ]\n"
+					"######################################################\n", argv[0] );
 		exit(1);
 	}
 	port = atoi( argv[1] );
 	
 	signal( SIGINT, signal_handler );
 
-	thr_cnt = 0;
+	threadCount = 0;
 	for ( i = 0; i < BACKLOG; i++ ) {
-		svr[i].msg_cnt = 0;
-		svr[i].ret = (void *)&ret[i];
+		// Mensajes.
+		svr[i].msgCount = i + 1;				
+		// Guarda la dirección donde se van a guardar los valores de retorno.
+		svr[i].returnValue = (void *)(returnValueLocal + i);		
 	}
 
-	if ( ( sockfd = open_conection( &my_addr, port ) ) == -1 ) {
+	sockfd = open_conection( &my_addr, port );
+	if ( sockfd == -1 ) {
 		perror( "Falló la creación de la conexión" ); 
 		exit(1);
 	}
+	
+	printf( "Esperando conexiones...\n" );
 
-	// while ( thr_cnt < THREAD_LIMIT ) {
+	// while ( (threadCount < THREAD_LIMIT) && (working == 1) ) {
 	while ( working == 1 ) {
-		svr[thr_cnt].socket = aceptar_pedidos( sockfd );
-		svr[thr_cnt].clt_cnt = thr_cnt;
+		svr[threadCount].cltfd = aceptar_pedidos( sockfd );	// Guarda el socket del cliente en específico.
+		
+		threadCount++;
+		svr[threadCount].cltCount = threadCount;	// Guarda cuantos threads se crearon.
 
-		err = pthread_create( &(tid[thr_cnt]), NULL, &do_something, (void *)(&svr[thr_cnt]) );
+		// Crea el thread pasando por referencia la variable "tid" donde se guarda el TID, 
+		// la dirección de la función "do_something", 
+		// y los argumentos en "srv".
+		err = pthread_create( tid + threadCount - 1, NULL, &do_something, (void *)(svr + threadCount - 1) );
 		if ( err != 0 )
 			printf( "\nCan't create thread: [%s].\n", strerror(err) );
 		else
-			printf( "\nThread %d created successfully.\n", thr_cnt );
-
-		thr_cnt++;
+			printf( "\nThread %d created successfully.\n", threadCount );
 	}
 
-	for ( i = 0; i < thr_cnt; i++ ) {
-		pthread_join( tid[i], (void**)&(ptr[i]) );
-		printf( "\nReturn value from thread %d is [%d].\n", i, *ptr[i] );
+	// Agarra los valores de retorno de cada thread.
+	for ( i = 0; i < threadCount; i++ ) {
+		pthread_join( tid[i], (void**)(returnValueLocal + i) );
+		printf( "\nReturn value from thread %d is [%d].\n", i, returnValueLocal[i] );
 	}
 
 	exit(0);
+	
+	return 0;
 }
