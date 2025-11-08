@@ -13,7 +13,8 @@
 // #define PORT			314159
 
 
-int 			sockfd; /* File Descriptor del socket por el que el servidor "escuchará" conexiones*/
+Nodo_t		*startThreadNode;
+int 			sockfd; 				// File Descriptor del socket por el que el servidor "escuchará" conexiones.
 int			working = 1;
 
 void 	signal_handler() {
@@ -22,11 +23,11 @@ void 	signal_handler() {
 }
 
 struct args {
-	int 	cltfd;
-	char 	cltCount;
-	char 	msg[STRSIZE];
-	char 	msgCount;
-	void 	*returnValue;		// Valor de retorno.
+	int 		cltfd;
+	char 		cltCount;
+	char 		msg[STRSIZE];
+	char 		msgCount;
+	void 		*returnValue;		// Valor de retorno.
 };
 
 
@@ -65,10 +66,14 @@ void *do_something( void *input ) {
 	return NULL;
 }
 
-
 //------------------------------------------------------
 // main
 //------------------------------------------------------
+/* Armar una lista GLOBAL con información de los threads.
+ * Las estructuras pueden tener datos de si los threads terminaron, así se
+ * puede preguntar sin bloquear por quién termino, para hacer join y liberar
+ * recursos.
+ */
 int main( int argc, char *argv[] ) {
 	int			port;
 	struct 		sockaddr_in my_addr;		// Contendrá la dirección IP y el número de puerto local.
@@ -132,7 +137,6 @@ int main( int argc, char *argv[] ) {
 		printf( "\nReturn value from thread %d is [%d].\n", i, returnValueLocal[i] );
 	}
 
-	exit(0);
-	
+
 	return 0;
 }

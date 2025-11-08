@@ -12,11 +12,11 @@ OBJ_DIR        = ../obj
 BIN_DIR        = ../bin
 INC_DIR        = ../inc
 SRC_DIR        = .
+# OBJS 				= $(SRCS:.c=.o)
 # CLIENT #
 TARGET_CL      = prog_cl
 TARGET_CL_DIR  = $(BIN_DIR)/$(TARGET_CL).bin
 OBJ_CL_DIR 		= ../obj/cl
-# OBJS_CL 			= $(SRCS:.c=.o)
 OBJS_CL        = $(OBJ_DIR)/getstring-lib.o \
                  $(OBJ_DIR)/main_client.o \
                  $(OBJ_DIR)/sock-lib.o
