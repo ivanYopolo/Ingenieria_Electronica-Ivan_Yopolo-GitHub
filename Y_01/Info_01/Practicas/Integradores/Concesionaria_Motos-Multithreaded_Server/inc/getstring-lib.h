@@ -1,0 +1,22 @@
+#ifndef getstring
+   // ########################################################
+   // Includes
+   // ########################################################
+   #include <stdio.h>
+	#include <stdlib.h>
+	#include <string.h>	
+	#include <ctype.h>
+   
+   // ########################################################
+   // Defines
+   // ########################################################
+   #define TAM_STR            1024
+
+   // ########################################################
+   // Funciones
+   // ########################################################
+   char   * write_str_d();
+   void     write_str( char *string, int tamString );
+   void     better_scanf( char *parameters, void *buffer );
+#endif
+
