@@ -15,10 +15,12 @@ int main( int argc, char * argv[] ) {
 	int		localDatafd = 0;		// File Descriptor de los datos locales.
 
 
+	// Manejo de argumentos del main (IP + Port).
 	if ( argc < 2 ) {
 		fprintf( stderr, "[ Uso: %s IP PORT ]\n", argv[0] );
 		exit(1);
 	}
+	
 	
 	port = atoi( argv[2] );
 	sockfd = conectar( argv[1], port );
@@ -29,10 +31,13 @@ int main( int argc, char * argv[] ) {
 		exit(1);
 	}
 	
-	localDatafd = open( "../data/sucursal/nombre_archivo_1.dat", O_CREAT | O_TRUNC | O_WRONLY, 0666 );
+	// Revisar nombre distintos de archivos...
+	// localDatafd = open( "../data/sucursal/nombre_archivo_1.dat", O_CREAT | O_TRUNC | O_WRONLY, 0666 );
 
-	alarm( 60 );
-	
+	// Creación del MUTEX.
+	pthread_mutex_init( &lockSave );
+
+	// ### Inicio del programa ###
 	system( "clear" );
 
 	printf( "######################################################\n"
@@ -41,9 +46,10 @@ int main( int argc, char * argv[] ) {
 			  "######################################################\n" );
 	
 	cargar_datos_casa_central( &startNode, sockfd );
+	alarm( 60 );	// Alarma para guardado automático.
 	
-	/* Implementar threads para cada función BLOQUEANTE.
-	 */ 
+	// Implementar threads para cada función BLOQUEANTE.
+	// O threads para el resto de funciones mientras se bloquea ("asíncronas").
 	
 	do {
 		menuOption = show_menu();
@@ -73,14 +79,6 @@ int main( int argc, char * argv[] ) {
 				printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n\n" );
 				menuOption = -1;
 		}
-		
-		
-		// Liberación de recursos de threads.
-		/*
-		for ( int i = 0; i < threadCount; i++ ) {
-			pthread_join( tids[i], NULL );
-		}
-		*/
 	} while ( menuOption != 0 );
 	
 	

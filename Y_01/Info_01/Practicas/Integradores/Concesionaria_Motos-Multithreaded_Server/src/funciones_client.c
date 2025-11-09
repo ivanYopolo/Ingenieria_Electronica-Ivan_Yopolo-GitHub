@@ -7,10 +7,11 @@
 // ######################################################
 // Variables Globales
 // ######################################################
-Nodo_t		*inicioListaSucursal = NULL;
-char			saving = 0;
-int			threadCount = 0;
-
+// char					saving = 0;
+pthread_mutex_t   lockSave;
+Nodo_t				*inicioListaSucursal = NULL;
+int					threadCount = 0;	// N° de threads creados (sin contar el main).
+pthread_t			*tid = NULL;		// TIDs de los threads (hecho dinámicamente).
 
 
 // ######################################################
@@ -18,20 +19,26 @@ int			threadCount = 0;
 // ######################################################
 /* Crea un thread que guarda datos de manera local
  * y de manera remota. Atrapa SIGALRM.
- *
- * pthread_t	tid;
  */
 void auto_save() {
-	pthread_t 		pthreadErr;
+	pthread_t 		pthreadErr;		// Manejo de errores en creaciones de threads.
 	
 	
 	signal( SIGALRM, auto_save );
-	alarm( 60 );	// En 60 segundos vuelve a mandar la señal.
-	saving = 1;
-	pthreadErr = pthread_create( tid[0], NULL, guardar_datos );	// Thread para guardar datos de forma local y remota.
-	if ( pthreadErr != 0 ) {
-		fprintf( stderr, "\n[ ERROR: NO SE PUDO GUARDAR AUTOMÁTICAMENTE. NO SE CREÓ EL THREAD. ]\n\n" );
+	
+	// Thread para guardar datos de forma local y remota.
+	tid = (pthread_t *) reallocarray( tid, threadCount + 1, sizeof (pthread_t) );
+	
+	pthreadErr = pthread_create( tid + threadCount, NULL, guardar_datos );	// Manda al thread a guardar.
+	
+	if ( pthreadErr != 0 ) {	// Checkeo de errores.
+		fprintf( stderr, "\n[ ERROR: NO SE PUDO GUARDAR AUTOMÁTICAMENTE. FALLÓ \"pthread_create()\". ]\n\n" );
+	} else {
+		threadCount++;
 	}
+	
+	
+	alarm( 60 );	// En 60 segundos vuelve a mandar la señal.
 }
 
 
@@ -55,7 +62,7 @@ int show_menu() {
 				  "------------------------------------------------------\n"
 				  "Opción:      " );
 		
-		better_scanf( "%d", &showMenuOpcion );
+		better_scanf( "%4d", &showMenuOpcion );
 		
 		if ( (showMenuOpcion < 0) || (showMenuOpcion > 4) ) {
 			printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n" );
@@ -72,12 +79,12 @@ int show_menu() {
 /* Obtiene datos del usuario.
  */
 void get_user_input( Nodo_t **startNodeINPUT ) {
-	Datos_t		inputData;
-	// Nodo_t		*inputNode = NULL;
-	char			inputting = 1;
-	int			numeroSerialInput = 0;
-	int			stockInput = 0;
-	float			precioInput = 0;
+	Datos_t			inputData;
+	// Nodo_t			*inputNode = NULL;
+	char				inputting = 1;
+	int				numeroSerialInput = 0;
+	int				stockInput = 0;
+	float				precioInput = 0;
 	
 	
 	do {
@@ -85,7 +92,7 @@ void get_user_input( Nodo_t **startNodeINPUT ) {
 		
 		do {
 			printf( "* Número serial:      " );
-			better_scanf( "%d", &numeroSerialInput );
+			better_scanf( "%4d", &numeroSerialInput );
 			if ( numeroSerialInput < 1 ) {
 				printf( "\n[ ERROR: INGRESE UN NÚMERO SERIAL VÁLIDO. ]\n\n" );
 				numeroSerialInput = 0;
@@ -101,7 +108,7 @@ void get_user_input( Nodo_t **startNodeINPUT ) {
 		
 		do {
 			printf( "* Stock:      " );
-			better_scanf( "%d", &stockInput );
+			better_scanf( "%4d", &stockInput );
 			if ( stockInput < 1 ) {
 				printf( "\n[ ERROR: INGRESE UN NÚMERO POSITIVO. ]\n\n" );
 				stockInput = 0;
@@ -112,7 +119,7 @@ void get_user_input( Nodo_t **startNodeINPUT ) {
 		
 		do {
 			printf( "* Precio:      " );
-			better_scanf( "%d", &precioInput );
+			better_scanf( "%4d", &precioInput );
 			if ( precioInput < 1 ) {
 				printf( "\n[ ERROR: INGRESE UN PRECIO VÁLIDO. ]\n\n" );
 				precioInput = 0;
@@ -134,8 +141,35 @@ void get_user_input( Nodo_t **startNodeINPUT ) {
 	- Puede sincronizarse cada minuto.
  */
 void cargar_datos_casa_central( Nodo_t **startNodeLOAD, int sockfdLOAD ) {
+	Datos_t			inputDataSERVER;
+	int 				bytesRead = 0;
+	int				dataSize = sizeof (Datos_t);
+	char				isListEmpty = 1;
 	
-	
+	do {
+		/* TODO
+		 * Protocolo servidor-cliente...
+		 * ...
+		 */
+		
+		bytesRead = read( sockfdLOAD, &inputDataSERVER, dataSize );
+		
+		if ( bytesRd == dataSize ) {
+			isListEmpty = 0;
+			push_node( startNodeLOAD, inputDataSERVER );
+			printf( "[ Dato recibido. ]\n" );
+			
+			/* TODO
+			 * Verificar datos repetidos...
+			 * Preguntar al usuario cuáles mantener...
+			 */
+		} else {
+			// Caso de primera lectura con cantidad de bytes leídos distinta a la esperada.
+			if ( isListEmpty == 1 ) {
+				printf( "\n-----------------   LISTA VACÍA   --------------------\n\n" );
+			}
+		}
+	} while ( bytesRead == dataSize );
 }
 
 
@@ -158,7 +192,7 @@ void abm_lista( Nodo_t **startNodeABM ) {
 					  "0)   Salir.\n"
 					  "Opción:      " );
 
-			better_scanf( "%d", ambOption );
+			better_scanf( "%4d", ambOption );
 			
 			if ( (ambOption < 0) || (3 < ambOption) ) {
 				printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n\n" );
@@ -188,7 +222,7 @@ void abm_lista( Nodo_t **startNodeABM ) {
 				  "0)   No, salir.\n"
 				  "Opción:      " );
 		
-		better_scanf( "%d", ambOption );
+		better_scanf( "%4d", ambOption );
 	} while ( ambOption != 0 );
 }
 
@@ -208,7 +242,7 @@ void alta_datos( Nodo_t **startNodeABM ) {
 	do {
 		printf( "# Indique el número serial del vehículo #\n" 
 				  "Número:      " );
-		better_scanf( "%d", &numeroSerialInput );
+		better_scanf( "%4d", &numeroSerialInput );
 		
 		if ( numeroSerialInput < 0 ) {
 			printf( "\n[ ERROR: INGRESE UN NÚMERO SERIAL VÁLIDO. ]\n\n" );
@@ -236,7 +270,7 @@ void alta_datos( Nodo_t **startNodeABM ) {
 						  "0)   No, salir.\n"
 						  "Opción:      " );
 						  
-				better_scanf( "%d", &altaOption );
+				better_scanf( "%4d", &altaOption );
 				
 				if ( altaOption < 0 ) {
 					printf( "\n[ ERROR: INGRESE UNA OPCIÓN VÁLIDA. ]\n\n" );
@@ -260,12 +294,12 @@ void baja_datos( Nodo_t **startNodeABM ) {
 	
 	
 	if ( *startNodeABM = NULL ) {
-		printf( "\n[ LISTA VACÍA. ]\n\n" );
+		printf( "\n-----------------   LISTA VACÍA   --------------------\n\n" );
 	} else {
 		do {
 			printf( "# Indique el número serial del vehículo #\n" 
 					  "Número:      " );
-			better_scanf( "%d", &numeroSerialInput );
+			better_scanf( "%4d", &numeroSerialInput );
 			
 			if ( numeroSerialInput < 0 ) {
 				printf( "\n[ ERROR: INGRESE UN NÚMERO SERIAL VÁLIDO. ]\n\n" );
@@ -305,12 +339,12 @@ void mod_datos( Nodo_t **startNodeABM ) {
 	
 	
 	if ( *startNodeABM = NULL ) {
-		printf( "\n[ LISTA VACÍA. ]\n\n" );
+		printf( "\n-----------------   LISTA VACÍA   --------------------\n\n" );
 	} else {
 		do {
 			printf( "# Indique el número serial del vehículo #\n" 
 					  "Número:      " );
-			better_scanf( "%d", &numeroSerialInput );
+			better_scanf( "%4d", &numeroSerialInput );
 			
 			if ( numeroSerialInput < 0 ) {
 				printf( "\n[ ERROR: INGRESE UN NÚMERO SERIAL VÁLIDO. ]\n\n" );
@@ -337,7 +371,7 @@ void mod_datos( Nodo_t **startNodeABM ) {
 								  "------------------------------------------------------\n"
 								  "0)   Cancelar y salir.\n"
 								  "Opción:      " );
-						better_scanf( "%d", &modOption );
+						better_scanf( "%4d", &modOption );
 						
 						if ( (modOption < 0) || (modOption > 3) ) {
 							printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n\n" );
@@ -350,7 +384,7 @@ void mod_datos( Nodo_t **startNodeABM ) {
 							do {
 								printf( "# Indique el nuevo stock del vehículo #\n" 
 										  "Número:      " );
-								better_scanf( "%d", &stockInput );
+								better_scanf( "%4d", &stockInput );
 								
 								if ( stockInput < 1 ) {
 									printf( "\n[ ERROR: STOCK INVÁLIDO. ]\n\n" );
@@ -364,7 +398,7 @@ void mod_datos( Nodo_t **startNodeABM ) {
 							do {
 								printf( "# Indique el nuevo número serial del vehículo #\n" 
 										  "Número:      " );
-								better_scanf( "%d", &numeroSerialInput );
+								better_scanf( "%4d", &numeroSerialInput );
 								
 								if ( numeroSerialInput < 1 ) {
 									printf( "\n[ ERROR: NÚMERO SERIAL INVÁLIDO. ]\n\n" );
@@ -378,7 +412,7 @@ void mod_datos( Nodo_t **startNodeABM ) {
 							do {
 								printf( "# Indique el precio del vehículo #\n" 
 										  "Número:      " );
-								better_scanf( "%f", &precioInput );
+								better_scanf( "%4f", &precioInput );
 								
 								if ( precioInput < 1 ) {
 									printf( "\n[ ERROR: PRECIO INVÁLIDO. ]\n\n" );
@@ -403,17 +437,49 @@ void mod_datos( Nodo_t **startNodeABM ) {
 
 
 //------------------------------------------------------
-// guardar_datos
+// guardar_datos - [THREADED]
 //------------------------------------------------------
 /* Guarda datos de la lista entera en un archivo y en el servidor.
+ * Puede entrar de forma ASÍNCRONA (cada 1 minuto).
  */
 void guardar_datos( Nodo_t *startNodeSAVE, int localDatafdSAVE, int sockfdSAVE ){
+	Nodo_t		*nodoCursorSAVE = NULL;
+	int 			bytesWrtFile = 0;
+	int 			bytesWrtSocket = 0;
+	const int	dataSize = sizeof (Datos_t);
+	
+	pthread_mutex_lock( &lockSave );		// Asegura que ningún thread pise la función.
+	
+	// Revisar nombre distintos de archivos...
+	// localDatafd = open( "../data/sucursal/nombre_archivo_1.dat", O_CREAT | O_TRUNC | O_WRONLY, 0666 );
 	
 	
+	if ( startNodeSAVE == NULL ) {
+		// printf( "\n[ LISTA VACÍA; NADA POR GUARDAR. ]\n\n" );
+		
+	} else {
+		// # Guardado local + remoto #
+		
+		nodoCursorSAVE = startNodeSAVE;
+		while ( nodoCursorSAVE != NULL ) {
+			bytesWrtFile = write( localDatafdSAVE, &(nodoCursorSAVE->datos), dataSize );
+			
+			bytesWrtSocket = write( sockfdSAVE, &(nodoCursorSAVE->datos), dataSize );
+			
+			nodoCursorSAVE = nodoCursorSAVE->nodoSig;
+			
+			if ( nodoCursorSAVE != NULL ) {				
+				if ( (bytesWrtFile < dataSize) || (bytesWrtSocket < dataSize) ) {
+					fprintf( stderr, "\n[ ERROR: NO SE PUDO ESCRIBIR EN EL ARCHIVO Y/O EN EL SERVIDOR. ]\n\n" );
+					exit( -1 );
+				}
+			}
+		}
+	}
 	
+	pthread_mutex_unlock( &lockSave );	// "Libera" el guardado.
 	
-	saving = 0;	// "Libera" el guardado.
-	// Mutex?
+	pthread_exit( NULL );
 }
 
 
@@ -423,8 +489,19 @@ void guardar_datos( Nodo_t *startNodeSAVE, int localDatafdSAVE, int sockfdSAVE )
 /* Muestra la lista cargada de manera local.
  */
 void visualizar_lista_local( Nodo_t *startNodeVISUAL ) {
-	
-	
+	Nodo_t		*nodoCursorVISUAL = NULL;
+
+
+	if ( startNodeVISUAL == NULL ) {
+		printf( "\n-----------------   LISTA VACÍA   --------------------\n\n" );
+	} else {
+		nodoCursorVISUAL = startNodeVISUAL;
+		while ( nodoCursorVISUAL != NULL ) {
+			visualizar_dato( nodoCursorVISUAL->datos );
+			
+			nodoCursorVISUAL = nodoCursorVISUAL->nodoSig;
+		}
+	}
 }
 
 
@@ -434,8 +511,30 @@ void visualizar_lista_local( Nodo_t *startNodeVISUAL ) {
 /* Muestra la lista cargada de manera remota.
  */
 void visualizar_lista_remoto( int sockfdVISUAL ) {
+	Datos_t			datoCursorVISUAL;
+	int				bytesRd = 0;
+	const int		dataSize = sizeof (Datos_t);
+	char				isListEmpty = 1;
 	
 	
+	do {
+		/* TODO
+		 * Protocolo servidor-cliente...
+		 * ...
+		 */
+		
+		bytesRd = read( sockfdVISUAL, &datoCursorVISUAL, dataSize );
+		
+		if ( bytesRd == dataSize ) {
+			visualizar_dato( datoCursorVISUAL );
+			isListEmpty = 0;
+		} else {
+			// Caso de primera lectura con cantidad de bytes leídos distinta a la esperada.
+			if ( isListEmpty == 1 ) {
+				printf( "\n-----------------   LISTA VACÍA   --------------------\n\n" );
+			}
+		}
+	} while ( bytesRd == dataSize );
 }
 
 
@@ -463,7 +562,7 @@ void visualizar_dato( Datos_t datoVISUAL ) {
  * sincroniza los datos locales con los datos remotos.
  */
 void sincronizar( Nodo_t **startNodeSYNC, int localDatafdSYNC, int sockfdSYNC ) {
-	// guardar_datos( *startNodeSYNC, localDatafdSYNC, sockfdSYNC );
+	guardar_datos( *startNodeSYNC, localDatafdSYNC, sockfdSYNC );
 	// cargar_datos_casa_central( startNodeSYNC, sockfdSYNC );
 }
 
@@ -478,11 +577,12 @@ void end_session( Nodo_t *startNodeEND, int sockfdEND, int localDatafdEND ) {
 	Nodo_t		*nodoPrevTemp = NULL;
 	
 	
+	// Guardado de datos (local y remoto) + cierre de socket y archivo.
 	guardar_datos( startNodeEND, sockfdEND );
 	close( sockfdEND );
 	close( localDatafdEND );
 	
-	// Libera recursos de la lista completa.
+	// Liberación recursos de la lista completa.
 	while ( nodoTemp != NULL ) {
 		nodoPrevTemp = nodoTemp;
 		nodoTemp = nodoTemp->nodoSig;
@@ -490,6 +590,16 @@ void end_session( Nodo_t *startNodeEND, int sockfdEND, int localDatafdEND ) {
 	}
 	
 	// Liberación de threads.
+	free( tid );	// Libera array de TIDs.
 	
+	// pthread_join( tidThreadX, NULL );	// No retorna nada, se le pasa el TID específico.
+	/*
+	for ( int i = 0; i < threadCount; i++ ) {
+		pthread_join( tids[i], NULL );
+	}
+	*/
+	
+	// Destrucción del MUTEX.
+	pthread_mutex_destroy( &lockSave );
 }
 

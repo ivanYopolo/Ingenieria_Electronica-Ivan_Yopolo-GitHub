@@ -32,7 +32,8 @@
 	// ######################################################
 	// Variables externas
 	// ######################################################
-	extern int threadCount;
+	extern int 					threadCount;
+	extern pthread_mutex_t	lockSave;
 	
 	
 	// ######################################################
