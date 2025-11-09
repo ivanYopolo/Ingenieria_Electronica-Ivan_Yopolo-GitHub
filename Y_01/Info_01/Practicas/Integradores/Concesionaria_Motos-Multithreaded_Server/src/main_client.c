@@ -31,7 +31,7 @@ int main( int argc, char * argv[] ) {
 	
 	localDatafd = open( "../data/sucursal/nombre_archivo_1.dat", O_CREAT | O_TRUNC | O_WRONLY, 0666 );
 
-	alarm( 1 );
+	alarm( 60 );
 	
 	system( "clear" );
 
@@ -73,6 +73,14 @@ int main( int argc, char * argv[] ) {
 				printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n\n" );
 				menuOption = -1;
 		}
+		
+		
+		// Liberación de recursos de threads.
+		/*
+		for ( int i = 0; i < threadCount; i++ ) {
+			pthread_join( tids[i], NULL );
+		}
+		*/
 	} while ( menuOption != 0 );
 	
 	

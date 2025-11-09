@@ -37,6 +37,7 @@ struct args {
 void *do_something( void *input ) {
 	int i; 
 	int j;
+	int nBytes;
 
 	for ( i = 0; i < LIMIT; i++ ) {
 		for ( j = 0; j < DELAY; j++ ) {
@@ -48,7 +49,7 @@ void *do_something( void *input ) {
 		snprintf( ((struct args*)input)->msg, STRSIZE, "Client: %d. Message: %d.\n", \
 					 ((struct args*)input)->cltCount, ((struct args*)input)->msgCount );
 		
-		int nBytes = write( ((struct args*)input)->cltfd, ((struct args*)input)->msg, STRSIZE );
+		nBytes = write( ((struct args*)input)->cltfd, ((struct args*)input)->msg, STRSIZE );
 		if ( nBytes == -1 ) {
 			perror( "Error escribiendo mensaje en socket" );
 			exit(1);
@@ -56,9 +57,6 @@ void *do_something( void *input ) {
 	}
 
 	close( ((struct args*)input)->cltfd );	// Cierra el socket.
-	
-	// Valor de retorno es el N° del cliente por 100.
-	*(int *)((struct args*)input)->returnValue = 100 * ( ((struct args*)input)->cltCount + 1 );
 	
 	// Sale con "pthread_exit()" y su valor de retorno correspondiente.
 	pthread_exit( ((struct args*)input)->returnValue );

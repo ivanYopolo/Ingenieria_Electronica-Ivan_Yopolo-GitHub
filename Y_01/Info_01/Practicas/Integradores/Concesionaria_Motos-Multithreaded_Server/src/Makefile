@@ -19,6 +19,8 @@ TARGET_CL_DIR  = $(BIN_DIR)/$(TARGET_CL).bin
 OBJ_CL_DIR 		= ../obj/cl
 OBJS_CL        = $(OBJ_DIR)/getstring-lib.o \
                  $(OBJ_DIR)/main_client.o \
+                 $(OBJ_DIR)/funciones_client.o \
+                 $(OBJ_DIR)/lista_doble-lib.o \
                  $(OBJ_DIR)/sock-lib.o
 # SERVER #
 TARGET_SRV     = prog_srv
@@ -26,6 +28,8 @@ TARGET_SRV_DIR = $(BIN_DIR)/$(TARGET_SRV).bin
 OBJ_SRV_DIR 	= ../obj/srv
 OBJS_SRV       = $(OBJ_DIR)/getstring-lib.o \
                  $(OBJ_DIR)/main_server.o \
+                 $(OBJ_DIR)/funciones_server.o \
+                 $(OBJ_DIR)/lista_doble-lib.o \
                  $(OBJ_DIR)/sock-lib.o
 # Compiler Flags #
 CFLAGS         = -Wall --pedantic-errors -I/$(INC_DIR)
