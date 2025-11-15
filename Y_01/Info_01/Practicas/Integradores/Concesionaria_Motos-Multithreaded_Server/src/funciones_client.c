@@ -8,10 +8,19 @@
 // Variables Globales
 // ######################################################
 // char					saving = 0;
-pthread_mutex_t   lockSave;
-Nodo_t				*inicioListaSucursal = NULL;
+// pthread_mutex_t   dataSave.lockSAVE;
+// Nodo_t				*inicioListaSucursal = NULL;
 int					threadCount = 0;	// N° de threads creados (sin contar el main).
 pthread_t			*tid = NULL;		// TIDs de los threads (hecho dinámicamente).
+Thread_Input_t 	dataSave;			// Global por signal handler "auto_save".
+/*
+	typedef struct 	Thread_Input_s {
+		Nodo_t 				*startNodeSAVE;
+		int 					localDatafdSAVE;
+		int 					sockfdSAVE;
+		pthread_mutex_t	lockSAVE;	// MUTEX.
+	} Thread_Input_t;	// Puede ser adaptado a doble puerto RD/WR.
+*/
 
 
 // ######################################################
@@ -21,7 +30,7 @@ pthread_t			*tid = NULL;		// TIDs de los threads (hecho dinámicamente).
  * y de manera remota. Atrapa SIGALRM.
  */
 void auto_save() {
-	pthread_t 		pthreadErr;		// Manejo de errores en creaciones de threads.
+	int 			pthreadErr;		// Manejo de errores en creaciones de threads.
 	
 	
 	signal( SIGALRM, auto_save );
@@ -29,16 +38,25 @@ void auto_save() {
 	// Thread para guardar datos de forma local y remota.
 	tid = (pthread_t *) reallocarray( tid, threadCount + 1, sizeof (pthread_t) );
 	
-	pthreadErr = pthread_create( tid + threadCount, NULL, guardar_datos );	// Manda al thread a guardar.
-	
-	if ( pthreadErr != 0 ) {	// Checkeo de errores.
-		fprintf( stderr, "\n[ ERROR: NO SE PUDO GUARDAR AUTOMÁTICAMENTE. FALLÓ \"pthread_create()\". ]\n\n" );
+	if ( tid != NULL ) {
+		fprintf( stderr, "\n[ ERROR: NO SE PUDO GUARDAR AUTOMÁTICAMENTE. ]\n"
+							  "[ FALLÓ \"reallocarray()\". FALTA MEMORIA. ]\n\n" );
 	} else {
-		threadCount++;
+		// Manda al thread a guardar.
+		pthreadErr = pthread_create( tid + threadCount, NULL, &guardar_datos, (void *) dataSave );	
+		// Guarda automáticamente el TID en "tid[threadCount]".
+		
+		if ( pthreadErr != 0 ) {	// Checkeo de errores.
+			fprintf( stderr, "\n[ ERROR: NO SE PUDO GUARDAR AUTOMÁTICAMENTE. ]\n" 
+								  "[ FALLÓ \"pthread_create()\". ]\n\n" );
+		
+		} else {
+			pthread_detach( tid[threadCount] );		// Lo hace independiente.
+			threadCount++;
+		}
+		
+		alarm( 60 );	// En 60 segundos vuelve a mandar la señal.
 	}
-	
-	
-	alarm( 60 );	// En 60 segundos vuelve a mandar la señal.
 }
 
 
@@ -73,14 +91,53 @@ int show_menu() {
 	return showMenuOpcion;
 }
 
+
+//------------------------------------------------------
+// is_serial_num_repeated
+//------------------------------------------------------
+/* Busca por números seriales repetidos (coincidencias)
+ *
+ * return:
+	- NULL: lista vacía o no se encontró el N° serial.
+	- != NULL: dirección del nodo con la coincidencia.
+ */
+Nodo_t *is_serial_num_repeated( Nodo_t **startNodeSERIALNUM, int compareSerialNum ) {
+	Nodo_t	*nodoCursor = NULL;
+	char	   nsRepeat = 0;
+	
+	
+	if ( startNodeSERIALNUM == NULL ) {
+		printf( "\n-----------------   LISTA VACÍA   --------------------\n\n" );
+		
+	} else {
+		nodoCursor = startNodeSERIALNUM;
+		
+		while ( nodoCursor != NULL ) {	// Checkea por repeticiones del número serial.
+			if ( nodoCursor->datos.serialNum == compareSerialNum ) {
+				nsRepeat = 1;	// COINCIDENCIA.
+			} else {
+				nodoCursor = nodoCursor->nodoSig;
+			}
+		}
+	}
+	
+	if ( nsRepeat == 0 ) {	// Caso: no hay coincidencias.
+		nodoCursor = NULL;
+	}
+	
+	
+	return nodoCursor;
+}
+
+
 //------------------------------------------------------
 // get_user_input
 //------------------------------------------------------
 /* Obtiene datos del usuario.
  */
 void get_user_input( Nodo_t **startNodeINPUT ) {
-	Datos_t			inputData;
 	// Nodo_t			*inputNode = NULL;
+	Datos_t			inputData;
 	char				inputting = 1;
 	int				numeroSerialInput = 0;
 	int				stockInput = 0;
@@ -132,6 +189,7 @@ void get_user_input( Nodo_t **startNodeINPUT ) {
 	} while ( inputting != 0 );
 }
 
+
 //------------------------------------------------------
 // cargar_datos_casa_central
 //------------------------------------------------------
@@ -144,7 +202,11 @@ void cargar_datos_casa_central( Nodo_t **startNodeLOAD, int sockfdLOAD ) {
 	Datos_t			inputDataSERVER;
 	int 				bytesRead = 0;
 	int				dataSize = sizeof (Datos_t);
-	char				isListEmpty = 1;
+	char				isListEmpty = 1;	// Empieza vacía la lista.
+	// # LOG #
+	int				fdLog;
+	fdLog = open( "../dump/cargar_datos_casa_central.log", O_CREAT | O_TRUNC | O_WRONLY, 0666 );
+	
 	
 	do {
 		/* TODO
@@ -157,7 +219,9 @@ void cargar_datos_casa_central( Nodo_t **startNodeLOAD, int sockfdLOAD ) {
 		if ( bytesRd == dataSize ) {
 			isListEmpty = 0;
 			push_node( startNodeLOAD, inputDataSERVER );
-			printf( "[ Dato recibido. ]\n" );
+			
+			// # LOG #
+			dprintf( fdLog, "[ Dato recibido. ]\n" );
 			
 			/* TODO
 			 * Verificar datos repetidos...
@@ -192,7 +256,7 @@ void abm_lista( Nodo_t **startNodeABM ) {
 					  "0)   Salir.\n"
 					  "Opción:      " );
 
-			better_scanf( "%4d", ambOption );
+			better_scanf( "%4d", &ambOption );
 			
 			if ( (ambOption < 0) || (3 < ambOption) ) {
 				printf( "\n[ ERROR: ELIJA UNA OPCIÓN VÁLIDA. ]\n\n" );
@@ -222,7 +286,8 @@ void abm_lista( Nodo_t **startNodeABM ) {
 				  "0)   No, salir.\n"
 				  "Opción:      " );
 		
-		better_scanf( "%4d", ambOption );
+		better_scanf( "%4d", &ambOption );
+		// scanf( "%4d", &ambOption );
 	} while ( ambOption != 0 );
 }
 
@@ -290,7 +355,7 @@ void alta_datos( Nodo_t **startNodeABM ) {
 void baja_datos( Nodo_t **startNodeABM ) {
 	int		numeroSerialInput = 0;	
 	int 		bajaOption = 0;
-	Nodo_t	*nodoCursor = startNodeABM;
+	// Nodo_t	*nodoCursor = startNodeABM;
 	
 	
 	if ( *startNodeABM = NULL ) {
@@ -306,15 +371,9 @@ void baja_datos( Nodo_t **startNodeABM ) {
 				bajaOption = -1;
 				numeroSerialInput = -1;
 			} else {
-				while ( nodoCursor != NULL ) {	// Checkea por repeticiones del número serial.
-					if ( nodoCursor->datos.serialNum == numeroSerialInput ) {
-						nsRepeat = 1;
-					} else {
-						nodoCursor = nodoCursor->nodoSig;
-					}
-				}
-				
-				if ( (nsRepeat == 1) && (nodoCursor != NULL) ) {	// Checkea por repeticiones del número serial.
+				// Checkea por repeticiones del número serial.
+				nodoCursor = is_serial_num_repeated( startNodeABM, numeroSerialInput );
+				if ( nodoCursor != NULL ) {	
 					pop_node( nodoCursor );
 				} else {
 					printf( "\n[ ERROR: NÚMERO SERIAL NO EXISTENTE. ]\n\n" );
@@ -350,17 +409,14 @@ void mod_datos( Nodo_t **startNodeABM ) {
 				printf( "\n[ ERROR: INGRESE UN NÚMERO SERIAL VÁLIDO. ]\n\n" );
 				modOption = -1;
 				numeroSerialInput = -1;
-			} else {
-				while ( nodoCursor != NULL ) {	// Checkea por repeticiones del número serial.
-					if ( nodoCursor->datos.serialNum == numeroSerialInput ) {
-						nsRepeat = 1;
-					} else {
-						nodoCursor = nodoCursor->nodoSig;
-					}
-				}
 				
-				if ( (nsRepeat == 1) && (nodoCursor != NULL) ) {	// Checkea por repeticiones del número serial.
-					// Mostrar el dato seleccionado:
+			} else {
+				
+				nodoCursor = is_serial_num_repeated( startNodeABM, numeroSerialInput );
+				
+				// if ( (nsRepeat == 1) && (nodoCursor != NULL) ) {	// Checkea por repeticiones del número serial.
+				if ( nodoCursor != NULL ) {	// Checkea por repeticiones del número serial.
+					// Muestra el dato seleccionado:
 					visualizar_dato( nodoCursor->datos );
 					
 					do{
@@ -442,42 +498,55 @@ void mod_datos( Nodo_t **startNodeABM ) {
 /* Guarda datos de la lista entera en un archivo y en el servidor.
  * Puede entrar de forma ASÍNCRONA (cada 1 minuto).
  */
-void guardar_datos( Nodo_t *startNodeSAVE, int localDatafdSAVE, int sockfdSAVE ){
-	Nodo_t		*nodoCursorSAVE = NULL;
-	int 			bytesWrtFile = 0;
-	int 			bytesWrtSocket = 0;
-	const int	dataSize = sizeof (Datos_t);
+// void guardar_datos( Nodo_t *startNodeSAVE, int localDatafdSAVE, int sockfdSAVE ){
+void guardar_datos( void *dataSaveINPUT ){
+	Nodo_t			*nodoCursorSAVE = NULL;
+	int 				bytesWrtFile = 0;
+	int 				bytesWrtSocket = 0;
+	const int		dataSize = sizeof (Datos_t);
+	Thread_Input_t dataSAVE = (Thread_Input_t) (*dataSaveINPUT);
 	
-	pthread_mutex_lock( &lockSave );		// Asegura que ningún thread pise la función.
+	pthread_mutex_lock( &(dataSave.lockSAVE) );		// Asegura que ningún thread pise la función.
 	
-	// Revisar nombre distintos de archivos...
+	/* Revisar nombre distintos de archivos...
+	 * 
+	 */
 	// localDatafd = open( "../data/sucursal/nombre_archivo_1.dat", O_CREAT | O_TRUNC | O_WRONLY, 0666 );
 	
 	
-	if ( startNodeSAVE == NULL ) {
+	// if ( startNodeSAVE == NULL ) {
+	if ( dataSAVE.startNodeSAVE == NULL ) {
 		// printf( "\n[ LISTA VACÍA; NADA POR GUARDAR. ]\n\n" );
 		
 	} else {
 		// # Guardado local + remoto #
 		
-		nodoCursorSAVE = startNodeSAVE;
+		// nodoCursorSAVE = startNodeSAVE;
+		nodoCursorSAVE = dataSAVE.startNodeSAVE;
 		while ( nodoCursorSAVE != NULL ) {
-			bytesWrtFile = write( localDatafdSAVE, &(nodoCursorSAVE->datos), dataSize );
+			// bytesWrtFile = write( localDatafdSAVE, &(nodoCursorSAVE->datos), dataSize );	// Local.
+			bytesWrtFile = write( dataSAVE.localDatafdSAVE, &(nodoCursorSAVE->datos), dataSize );	// Local.
 			
-			bytesWrtSocket = write( sockfdSAVE, &(nodoCursorSAVE->datos), dataSize );
+			// bytesWrtSocket = write( sockfdSAVE, &(nodoCursorSAVE->datos), dataSize );		// Remoto.
+			bytesWrtSocket = write( dataSAVE.sockfdSAVE, &(nodoCursorSAVE->datos), dataSize );		// Remoto.
 			
 			nodoCursorSAVE = nodoCursorSAVE->nodoSig;
 			
 			if ( nodoCursorSAVE != NULL ) {				
 				if ( (bytesWrtFile < dataSize) || (bytesWrtSocket < dataSize) ) {
 					fprintf( stderr, "\n[ ERROR: NO SE PUDO ESCRIBIR EN EL ARCHIVO Y/O EN EL SERVIDOR. ]\n\n" );
-					exit( -1 );
+					nodoCursorSAVE = NULL;	// Sale del while().
+					// exit( -1 );
 				}
 			}
 		}
 	}
 	
-	pthread_mutex_unlock( &lockSave );	// "Libera" el guardado.
+	// # Liberación de recursos #
+	// close( localDatafdSAVE );
+	close( dataSAVE.localDatafdSAVE );
+	
+	pthread_mutex_unlock( &(dataSave.lockSAVE) );	// "Libera" el guardado.
 	
 	pthread_exit( NULL );
 }
@@ -561,7 +630,8 @@ void visualizar_dato( Datos_t datoVISUAL ) {
 /* Guarda datos de forma local, carga datos remotos y
  * sincroniza los datos locales con los datos remotos.
  */
-void sincronizar( Nodo_t **startNodeSYNC, int localDatafdSYNC, int sockfdSYNC ) {
+// void sincronizar( Nodo_t **startNodeSYNC, int localDatafdSYNC, int sockfdSYNC ) {
+void sincronizar( void *dataSYNC ) {
 	guardar_datos( *startNodeSYNC, localDatafdSYNC, sockfdSYNC );
 	// cargar_datos_casa_central( startNodeSYNC, sockfdSYNC );
 }
@@ -600,6 +670,6 @@ void end_session( Nodo_t *startNodeEND, int sockfdEND, int localDatafdEND ) {
 	*/
 	
 	// Destrucción del MUTEX.
-	pthread_mutex_destroy( &lockSave );
+	pthread_mutex_destroy( &(dataSave.lockSAVE) );
 }
 

@@ -1,15 +1,10 @@
-#include "../inc/sock-lib.h"
+#include "../inc/includes_server.h"
 
-#include <stdio.h>
-#include <string.h>
-#include <pthread.h>
-#include <stdlib.h>
-#include <unistd.h>
 
-#define DELAY 			5000
-#define LIMIT 			4
-#define STRSIZE 		20
-#define THREAD_LIMIT 15
+// #define DELAY 			5000
+// #define LIMIT 			4
+// #define STRSIZE 		20
+// #define THREAD_LIMIT 15
 // #define PORT			314159
 
 
@@ -22,6 +17,7 @@ void 	signal_handler() {
 	close( sockfd );
 }
 
+/*
 struct args {
 	int 		cltfd;
 	char 		cltCount;
@@ -29,11 +25,13 @@ struct args {
 	char 		msgCount;
 	void 		*returnValue;		// Valor de retorno.
 };
+*/
 
 
 //------------------------------------------------------
 // do_something
 //------------------------------------------------------
+/*
 void *do_something( void *input ) {
 	int i; 
 	int j;
@@ -63,6 +61,7 @@ void *do_something( void *input ) {
 
 	return NULL;
 }
+*/
 
 //------------------------------------------------------
 // main
@@ -73,6 +72,7 @@ void *do_something( void *input ) {
  * recursos.
  */
 int main( int argc, char *argv[] ) {
+	/*
 	int			port;
 	struct 		sockaddr_in my_addr;		// Contendrá la dirección IP y el número de puerto local.
 	int 			i;
@@ -135,6 +135,6 @@ int main( int argc, char *argv[] ) {
 		printf( "\nReturn value from thread %d is [%d].\n", i, returnValueLocal[i] );
 	}
 
-
+	*/
 	return 0;
 }

@@ -27,13 +27,21 @@
 	#define	GUARDAR			2
 	#define	VISUAL_LOCAL	3
 	#define	VISUAL_SERVER	4
+	#define	SINCRONIZAR		5
+	
+	typedef struct 	Thread_Input_s {
+		Nodo_t 				*startNodeSAVE;
+		int 					localDatafdSAVE;
+		int 					sockfdSAVE;
+		pthread_mutex_t	lockSAVE;	// MUTEX.
+	} Thread_Input_t;	// Puede ser adaptado a doble puerto RD/WR.
 	
 	
 	// ######################################################
 	// Variables externas
 	// ######################################################
 	extern int 					threadCount;
-	extern pthread_mutex_t	lockSave;
+	extern Thread_Input_t 	dataSave;	// Argumentos para guardar_datos(). Global por signal_handler.
 	
 	
 	// ######################################################
@@ -45,7 +53,8 @@
 	void		alta_datos( Nodo_t **startNodeABM );
 	void		baja_datos( Nodo_t **startNodeABM );
 	void		mod_datos( Nodo_t **startNodeABM );
-	void		guardar_datos( Nodo_t *startNodeSAVE, int localDatafdSAVE, int sockfdSAVE );
+	// void		guardar_datos( Nodo_t *startNodeSAVE, int localDatafdSAVE, int sockfdSAVE );
+	void		guardar_datos( void *dataSAVE );
 	void		visualizar_lista_local( Nodo_t *startNodeVISUAL );
 	void		visualizar_lista_remoto( int sockfdVISUAL );
 	void 		sincronizar( Nodo_t **startNodeSYNC, int localDatafdSYNC, int sockfdSYNC );

@@ -90,7 +90,7 @@ void push_node( Nodo_t **startNodePUSH, Datos_t inputDataPUSH ) {
 //------------------------------------------------------------------------
 /* Crea un nodo en la lista.
  */
-Nodo_t * create_node( Dato_t datoX ) {
+Nodo_t * create_node( Datos_t datoX ) {
 
    // Asigna nuevo Nodo de forma DINÁMICA (queda en el HEAP).
    Nodo_t *newNode = (Nodo_t *) malloc( sizeof(Nodo_t) );
@@ -99,7 +99,7 @@ Nodo_t * create_node( Dato_t datoX ) {
    newNode->prevNode = NULL;
    newNode->nextNode = NULL;
    
-   // Copia los contenidos de los structs tipo "Dato_t".
+   // Copia los contenidos de los structs tipo "Datos_t".
    newNode->datos = datoX;
    
    return newNode;
@@ -115,7 +115,7 @@ Nodo_t * create_node( Dato_t datoX ) {
    1) Conserva datoInput.
    2) Conserva newData.
  */
-void merge_data( Dato_t *datoInput, Dato_t newData, int mergeSelection ) {
+void merge_data( Datos_t *datoInput, Datos_t newData, int mergeSelection ) {
    
    datoInput->cantidad += newData.cantidad;   // Junta los Stocks.
 
