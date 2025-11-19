@@ -6,22 +6,25 @@
 
 
 // # GLOBAL #
-// char *(inversedStrings[MAX_STR_SIZE]);
-char **inversedStrings = NULL;
+char 					**inversedStrings = NULL;
+pthread_mutex_t	inverStrLock;
 
 
 // ------------------------------------------------------
 // main
 // ------------------------------------------------------
 int main( int argc, char *argv[] ) {
-	int 	nLetters;
-	int 	arrayCursor;
+	int 					nLetters;
+	int 					arrayCursor;
 	
 	
 	if ( argc < 2 ) {
 		printf( "\n[ USO: ./prog.bin mensaje01 mensaje02 ... mensajeNN ]\n\n" );
 		exit(1);
 	} else {
+		// MUTEX
+		pthread_mutex_init( &inverStrLock, NULL );
+		
 		// Inicializa el array de strings dinámico # GLOBAL #.
 		inversedStrings = (char **) malloc( (argc - 1) * sizeof (char *) );
 		
@@ -29,6 +32,7 @@ int main( int argc, char *argv[] ) {
 		for ( nLetters = 0; nLetters < MAX_STR_SIZE; nLetters++ ) {
 			inversedStrings[nLetters] = (char *) malloc( MAX_STR_SIZE * sizeof (char) );
 		}
+		// MAX_STR_SIZE define el N° máx de caracteres por string.
 		
 		// Llama a la función que dispara los threads a realizar las tareas.
 		invertir( argv + 1, inversedStrings, argc - 1 );
@@ -36,18 +40,19 @@ int main( int argc, char *argv[] ) {
 		
 		// # Visualizando output #
 		
-		printf( "\n\n### Array de strings originales ###\n\n" );
+		printf( "\n### Array de strings originales ###\n\n" );
 		for ( arrayCursor = 1; arrayCursor < argc; arrayCursor++ ) {
 			printf( "%d)   \"%s\".\n", arrayCursor + 1, argv[arrayCursor] );
 		}
 		
-		printf( "\n\n### Array de strings invertidos ###\n\n" );
+		printf( "\n### Array de strings invertidos ###\n\n" );
 		for ( arrayCursor = 0; arrayCursor < (argc - 1); arrayCursor++ ) {
 			printf( "%d)   \"%s\".\n", arrayCursor + 1, inversedStrings[arrayCursor] );
 		}
 		
 		// # Liberación de recursos #.
 		free( inversedStrings );
+		pthread_mutex_destroy( &inverStrLock );
 	}
 	
 	pthread_exit( NULL );
@@ -72,7 +77,8 @@ void invertir( char **src, char **dst, int strc ) {
 		
 		for ( int nThreads = 0; nThreads < strc; nThreads++ ) {
 			pthread_create( tidList + nThreads, NULL, (void *) (&string_reverse), (void *) src[nThreads] );
-			printf( "# Creando Thread N° [%d]. TID = [%ld]. #\n", nThreads, tidList[nThreads] );
+			printf( "# Creando Thread N° [%d]. TID = [%ld]. #\n", nThreads + 1, tidList[nThreads] );
+			usleep( 100000 );
 		}
 		
 		printf( "\n------------------------------------------------------\n\n" );
@@ -82,6 +88,8 @@ void invertir( char **src, char **dst, int strc ) {
 			pthread_join( tidList[nThreads], (void **) (dst + nThreads) );
 			printf( "# Terminó Thread TID = [%ld]. #\n", tidList[nThreads] );
 		}
+		
+		printf( "\n------------------------------------------------------\n\n" );
 		
 		// # Liberación de recursos #.
 		free( tidList );
@@ -106,6 +114,8 @@ void *string_reverse( void * const arg ) {
 	if ( arg == NULL ) {
 		printf( "[ string_reverse: String vacío. ]" );
 	} else {
+		usleep( 100000 );
+		
 		strInput = (char *) arg;
 		
 		stringLen = strlen( strInput );
@@ -113,10 +123,12 @@ void *string_reverse( void * const arg ) {
 		strOutput = (char *) malloc( (stringLen + 1) * sizeof (char) );
 		strOutput[stringLen] = '\0';
 		
+		pthread_mutex_lock( &inverStrLock );
 		/* 1) Mete último char de "strInput" en primera pos de "strOutput".
 		 * 2) Mete primer char de "strInput" en última pos de "strOutput".
 		 * Trabajo 2x1. ;)
 		 */
+		usleep( 500000 );
 		for ( cursorOutput = 0, cursorInput = stringLen - 1; \
 				cursorOutput <= cursorInput; \
 				cursorOutput++, cursorInput-- ) {
@@ -124,6 +136,7 @@ void *string_reverse( void * const arg ) {
 			strOutput[cursorOutput] = strInput[cursorInput];	// Asignación último -> primero.
 			strOutput[cursorInput] = strInput[cursorOutput];	// Asignación primero -> último.
 		}
+		pthread_mutex_unlock( &inverStrLock );
 	}
 	
 	
