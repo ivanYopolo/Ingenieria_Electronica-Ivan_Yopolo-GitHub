@@ -154,7 +154,7 @@ void get_user_input( Nodo_t **startNodeINPUT ) {
 				printf( "\n[ ERROR: INGRESE UN NÚMERO SERIAL VÁLIDO. ]\n\n" );
 				numeroSerialInput = 0;
 			} else {
-				if ( is_serial_repeated( startNodeINPUT, numeroSerialInput ) == 1 ) {
+				if ( is_serial_num_repeated( startNodeINPUT, numeroSerialInput ) == 1 ) {
 					printf( "\n[ ERROR: NÚMERO SERIAL TOMADO. ]\n\n" );
 					numeroSerialInput = 0;
 				} else {
@@ -198,22 +198,28 @@ void get_user_input( Nodo_t **startNodeINPUT ) {
  * [OPCIONAL]
 	- Puede sincronizarse cada minuto.
  */
+/* TODO
+ * # Protocolo servidor-cliente #
+ *
+ * CLT -> Manda 1 (1 B) = RD.
+ * SRV -> Manda datos hasta terminar.
+ *
+ * CLT -> Manda 0 (1 B) = WR.
+ * CLT -> Manda datos hasta terminar.
+ */
 void cargar_datos_casa_central( Nodo_t **startNodeLOAD, int sockfdLOAD ) {
 	Datos_t			inputDataSERVER;
 	int 				bytesRead = 0;
 	int				dataSize = sizeof (Datos_t);
 	char				isListEmpty = 1;	// Empieza vacía la lista.
+	char				rdFlag[1] = '1';
 	// # LOG #
 	int				fdLog;
 	fdLog = open( "../dump/cargar_datos_casa_central.log", O_CREAT | O_TRUNC | O_WRONLY, 0666 );
 	
 	
+	bytesRead = write( sockfdLOAD, rdFlag, sizeof (char) );	// 1 -> RD.
 	do {
-		/* TODO
-		 * Protocolo servidor-cliente...
-		 * ...
-		 */
-		
 		bytesRead = read( sockfdLOAD, &inputDataSERVER, dataSize );
 		
 		if ( bytesRd == dataSize ) {
@@ -234,6 +240,9 @@ void cargar_datos_casa_central( Nodo_t **startNodeLOAD, int sockfdLOAD ) {
 			}
 		}
 	} while ( bytesRead == dataSize );
+	
+	if ( fdLog > 0 )
+		close( fdLog );
 }
 
 
@@ -498,11 +507,21 @@ void mod_datos( Nodo_t **startNodeABM ) {
 /* Guarda datos de la lista entera en un archivo y en el servidor.
  * Puede entrar de forma ASÍNCRONA (cada 1 minuto).
  */
+/* TODO
+ * # Protocolo servidor-cliente #
+ *
+ * CLT -> Manda 1 (1 B) = RD.
+ * SRV -> Manda datos hasta terminar.
+ *
+ * CLT -> Manda 0 (1 B) = WR.
+ * CLT -> Manda datos hasta terminar.
+ */
 // void guardar_datos( Nodo_t *startNodeSAVE, int localDatafdSAVE, int sockfdSAVE ){
 void guardar_datos( void *dataSaveINPUT ){
 	Nodo_t			*nodoCursorSAVE = NULL;
 	int 				bytesWrtFile = 0;
 	int 				bytesWrtSocket = 0;
+	char 				wrFlag[1] = '0';
 	const int		dataSize = sizeof (Datos_t);
 	Thread_Input_t dataSAVE = (Thread_Input_t) (*dataSaveINPUT);
 	
@@ -527,6 +546,7 @@ void guardar_datos( void *dataSaveINPUT ){
 			// bytesWrtFile = write( localDatafdSAVE, &(nodoCursorSAVE->datos), dataSize );	// Local.
 			bytesWrtFile = write( dataSAVE.localDatafdSAVE, &(nodoCursorSAVE->datos), dataSize );	// Local.
 			
+			bytesWrtSocket = write( dataSAVE.sockfdSAVE, wrFlag, sizeof (char) );		// Remoto.
 			// bytesWrtSocket = write( sockfdSAVE, &(nodoCursorSAVE->datos), dataSize );		// Remoto.
 			bytesWrtSocket = write( dataSAVE.sockfdSAVE, &(nodoCursorSAVE->datos), dataSize );		// Remoto.
 			
