@@ -4,32 +4,24 @@
 	// ######################################################
 	// Includes
 	// ######################################################
-	#include <stdlib.h>
-	#include <stdio.h>
-	#include <string.h>
-	#include <ctype.h>
-	#include <pthread.h>
-	#include <sys/types.h>
-	#include <sys/stat.h>
-	#include <fcntl.h>
-	#include <unistd.h>
-
+	
 	
 	// ######################################################
 	// Defines
 	// ######################################################
-	#define 	ARCH_LIST_SIZE	1024
 	
-
-	typedef struct Config_Data_s {
-		int	port;
-		int	backLog;
-		char	**archStr;	// Array de strings
-	} Config_Data_t;
+	typedef struct Dato_s {
+		int				num;
+	} Dato_t;
 	
+	typedef struct Nodo_s {
+		struct Nodo_s	*prevNode; 
+		Dato_t			dato;
+		struct Nodo_s	*nextNode; 
+	} Nodo_t;
 	
 	// ######################################################
 	// Funciones
 	// ######################################################
-	Config_Data_t	load_conf( const char *const fileName );
+	int 	insertar( Nodo_t **INI, int dat );
 #endif
