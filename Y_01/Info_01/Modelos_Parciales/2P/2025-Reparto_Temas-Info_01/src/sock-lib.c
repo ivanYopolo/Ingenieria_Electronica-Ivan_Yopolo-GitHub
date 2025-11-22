@@ -1,4 +1,4 @@
-#include "sock-lib.h"
+#include "../inc/sock-lib.h"
 
 
 //------------------------------------------------------------------------
@@ -43,14 +43,14 @@ int conectar( char *ip, int port )
 
 
 //------------------------------------------------------------------------
-// open_conection - [ SERVER ]
+// open_connection - [ SERVER ]
 //------------------------------------------------------------------------
 /* Abre la conexión (socket) para que reciba pedidos el servidor.
  * Utiliza IP local, propia del servidor mismo.
  * 
  * Declarar "srv_addr" en el main. Se utiliza por referencia.
  */
-int open_conection( struct sockaddr_in *srv_addr, int port )
+int open_connection( struct sockaddr_in *srv_addr, int port )
 {
 	int	               sockaux;	/* Socket auxiliar. */
 	int	               aux; 		/* Variable auxiliar. */
