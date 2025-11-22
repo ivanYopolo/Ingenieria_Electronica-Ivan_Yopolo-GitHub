@@ -21,8 +21,10 @@ int main ( int argc, char *argv[] ) {
 	
 	
 	if ( argc != 5 ) {
+		
 		printf( "\n[ USO: ./clt.bin <IP> <PORT> <LEGAJO> <DNI> ]\n\n" );
 	} else {
+		
 		srvFd = conectar( argv[1], atoi( argv[2] ) );
 		
 		if ( srvFd < 1 ) {
@@ -60,6 +62,8 @@ int main ( int argc, char *argv[] ) {
 					close( parcialArchivoFd );
 				}
 			}
+			
+			close( srvFd );
 		}
 	}
 	

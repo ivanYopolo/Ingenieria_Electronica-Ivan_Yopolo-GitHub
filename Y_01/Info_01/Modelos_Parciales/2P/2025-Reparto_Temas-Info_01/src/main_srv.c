@@ -84,12 +84,13 @@ int manejar_alumnos( int port ) {
 		create_test_data();
 		
 		// # Apertura de archivo #
-		dataFd = open( "../data/alumnos.dat", O_RDONLY );
+		dataFd = open( "../data/prof/alumnos.dat", O_RDONLY );
 		
 		cargar_lista_archivo( dataFd, &startNode );	// Carga la lista completa de archivo.
 		
-		
 		close( dataFd );
+		
+		show_list( startNode );
 		
 		// if ( (dataFd < 1) || (startNode == NULL) ) {
 		if ( (dataFd < 1) ) {
@@ -97,7 +98,8 @@ int manejar_alumnos( int port ) {
 		} else {
 
 			working = 1;
-			nThreads = 0;
+			nThreads = 1;
+			tids = (pthread_t *) malloc( sizeof (pthread_t) );
 			
 			do {
 				printf( "\nEsperando pedidos...\n\n" );
@@ -108,7 +110,7 @@ int manejar_alumnos( int port ) {
 					nThreads++;
 					tids = (pthread_t *) reallocarray( tids, nThreads, sizeof (pthread_t) );
 					
-					printf( "* TID creado: %ld.\n", tids[nThreads - 1] );
+					printf( "* TID creado: %ld.\n", tids[nThreads] );
 					
 					// # Agrupar bien los argumentos de threads como estructuras... #
 					argThread = (ThreadArg_t *) malloc( sizeof (ThreadArg_t) );
@@ -116,10 +118,14 @@ int manejar_alumnos( int port ) {
 					argThread->inputFd = clientFd;		// FD del alumno.
 					
 					pthread_create( tids, NULL, validacion_alumno, (void *) argThread );
-					pthread_detach( tids[nThreads - 1] );	// Libera recursos (incluyendo argumentos) cuando termina.
+					// pthread_detach( tids[nThreads] );	// Libera recursos (incluyendo argumentos) cuando termina.
+					// printf( "* Thread detacheado.\n" );
 				}
-				
 			} while ( working == 1 );
+			
+			for ( int k = 0; k < (nThreads - 1); k++ ) {
+				pthread_join( tids[k], NULL );
+			}
 		}	// Archivo abierto exitosamente.
 	}	// Socket abierto exitosamente.
 	
@@ -145,6 +151,7 @@ void cargar_lista_archivo( int archivoFd, Nodo_t **inicioLista ) {
 		if ( bytesRd == sizeof (Alumno_t) ) {
 			
 			if ( (*inicioLista) == NULL ) {		// Caso lista vacía.
+				printf( "[ Lista vacía. ]\n" );
 			
 				(*inicioLista) = (Nodo_t *) malloc( sizeof (Nodo_t) );	// Inicializa nodo.
 				
@@ -153,7 +160,10 @@ void cargar_lista_archivo( int archivoFd, Nodo_t **inicioLista ) {
 				(*inicioLista)->dato.banned = FALSE;
 				(*inicioLista)->prevNode = NULL;
 				(*inicioLista)->nextNode = NULL;
+				
+				show_list( *inicioLista );
 			} else {										// Caso general (al inicio).
+				printf( "[ Nuevo dato leído. ]\n" );
 				
 				auxNode = (Nodo_t *) malloc( sizeof (Nodo_t) );	// Inicializa nodo.
 				
@@ -164,6 +174,9 @@ void cargar_lista_archivo( int archivoFd, Nodo_t **inicioLista ) {
 				auxNode->prevNode = NULL;				// Enlace de nodos.
 				auxNode->nextNode = (*inicioLista);
 				(*inicioLista)->prevNode = auxNode;
+				(*inicioLista) = auxNode;
+				
+				show_list( *inicioLista );
 			}
 		}	// No terminó de leer el archivo.
 	} while ( bytesRd == sizeof (Alumno_t) );
@@ -184,7 +197,7 @@ void *validacion_alumno( void * args ) {
 	char					temaRuta[TEMA_LEN] = "../temas/TX.tar.gz";
 	char					bufParcial[MAX_BUF_SIZE];		// Escanea el archivo parcial y lo guarda en esta variable 
 																	// para mandarlo al alumno.
-	Nodo_t				*const listInit = *(((ThreadArg_t *)args)->startList);			// Inicio de lista.
+	Nodo_t				*listInit = *(((ThreadArg_t *)args)->startList);			// Inicio de lista.
 																											// Asigna el primer nodo de la lista (dirección del nodo).
 	Nodo_t				*auxNode;		// Para escanear la lista entera.
 	char					msgs[3][6] = { "E404E", "E403E", "OK200" };
@@ -198,9 +211,6 @@ void *validacion_alumno( void * args ) {
 	srand( time( NULL ) );
 	
 	alumFd = ((ThreadArg_t *)args)->inputFd;
-	
-	// listInit = ((ThreadArg_t *)args)->(*startList);		// Asigna el primer nodo de la lista (dirección del nodo).
-	auxNode = listInit;
 	
 	if ( listInit == NULL ) {
 		printf( "\n[ CURSO VACÍO. NO SE ENVÍA NADA. ]\n\n" );
@@ -221,7 +231,11 @@ void *validacion_alumno( void * args ) {
 			
 			flagSearchingList = 1;
 			flagFoundNode = 0;
-			while ( (auxNode != NULL) ) {	// Busca en la lista entera por coincidencias.
+			// listInit = ((ThreadArg_t *)args)->(*startList);		// Asigna el primer nodo de la lista (dirección del nodo).
+			auxNode = listInit;
+			while ( (auxNode != NULL) && (flagSearchingList == 1) ) {	// Busca en la lista entera por coincidencias.
+				
+				printf( "[ Comparando con %d. ]\n", auxNode->dato.legajo );
 				
 				if ( auxNode->dato.legajo == legajoInput ) {
 					
@@ -235,27 +249,28 @@ void *validacion_alumno( void * args ) {
 			
 			// Verificar que LEGAJO & DNI coincidan entre input client y valor de lista. 
 			// Sinó: SRV -> "E403E".
-			if ( auxNode == NULL ) {
+			if ( flagFoundNode != 1 ) {
 				
-				printf( "\n[ ERROR: N/MATCH. ]\n\n" );
+				printf( "\n[ ERROR: N/MATCH. %s ]\n\n", msgs[1] );
 				write( alumFd, msgs[1], (strlen( msgs[1] ) + 1) * sizeof (char) );	// "E403E".
 			} else {
 				
 				if ( auxNode->dato.DNI != dniInput ) {
 					
-					printf( "\n[ ERROR: N/MATCH. ]\n\n" );
+					printf( "\n[ ERROR: N/MATCH. %s ]\n\n", msgs[1] );
 					write( alumFd, msgs[1], (strlen( msgs[1] ) + 1) * sizeof (char) );	// "E403E".
 				} else {
 					// Si pasa las validaciones: SRV -> "OK200" + EXAMEN.
 					// Genera un N° rand 1~4 + archivo "TX.tar.gz" donde la X se reemplaza por el número generado.
 					// Se incrementa el valor "repartido" en 1.
 					
+					printf( "\n[ Coincidencia entre legajo y DNI. Enviando %s. ]\n\n", msgs[2] );
 					write( alumFd, msgs[2], (strlen( msgs[2] ) + 1) * sizeof (char) );	// "OK200".
 					
 					temaRand = rand() % 4 + 1;
 					
 					// Concatenar strings con N° de tema...
-					for ( cursor = 0; temaRuta[cursor] != 'X'; cursor++ );	// For vacío.
+					for ( cursor = 0; temaRuta[cursor] != 'X'; cursor++ ) {}	// For vacío.
 					temaRuta[cursor] = (char) (temaRand + '0');	// Reemplaza 'X'.
 					
 					temaFd = open( temaRuta, O_RDONLY );
@@ -265,6 +280,7 @@ void *validacion_alumno( void * args ) {
 						auxNode->dato.repartido = 0;
 					} else {
 						
+						printf( "[ Archivo \"%s\" abierto exitosamente. ]\n", temaRuta );
 						do {	// Parcial con "temaRand" N° de tema.
 							bytesRd = read( temaFd, bufParcial, MAX_BUF_SIZE );	// Lee de archivo.
 							
@@ -275,15 +291,21 @@ void *validacion_alumno( void * args ) {
 						close( temaFd );
 						
 						auxNode->dato.repartido = 1;
+						printf( "\n### Terminó de enviar parcial. Cerrando... ###\n\n" );
 					}	// Encontró el tema correctamente.
 				}	// Coinciden Legajo y DNI.
 			}	// No se llegó al final de lista.
 		}	// Datos recibidos por socket válidos.
 	}	// Lista no vacía.
 	
+	
+	
 	// # Liberación de recursos #
 	close( alumFd );
 	free( args );
+	// # TEST #
+	usleep( 9000000 );
+	printf( "{ Terminó el usleep() }\n" );
 	pthread_exit( NULL );
 	return NULL;
 }
@@ -305,22 +327,22 @@ void create_test_data() {
 	
 	
 	// # Creación de archivo de datos de alumnos "alumnos.dat" #
-	alumnosPrueba[0].legajo = 0303456;
-	alumnosPrueba[0].DNI = 1231237;
-	strncpy( alumnosPrueba[0].nombre, "Pepe", 5 );
-	strncpy( alumnosPrueba[0].apellido, "Gomez", 6 );
+	alumnosPrueba[0].legajo = (int) 11;
+	alumnosPrueba[0].DNI = (int) 12;
+	strcpy( alumnosPrueba[0].nombre, "Pepe" );
+	strcpy( alumnosPrueba[0].apellido, "Gomez" );
 	
-	alumnosPrueba[1].legajo = 4543210;
-	alumnosPrueba[1].DNI = 48125023;
-	strncpy( alumnosPrueba[1].nombre, "Laura", 6 );
-	strncpy( alumnosPrueba[1].apellido, "Gonzales", 9 );
+	alumnosPrueba[1].legajo = (int) 13;
+	alumnosPrueba[1].DNI = (int) 14;
+	strcpy( alumnosPrueba[1].nombre, "Laura" );
+	strcpy( alumnosPrueba[1].apellido, "Gonzales" );
 	
-	alumnosPrueba[2].legajo = 3141596;
-	alumnosPrueba[2].DNI = 26789460;
-	strncpy( alumnosPrueba[2].nombre, "María", 6 );
-	strncpy( alumnosPrueba[2].apellido, "Paz", 4 );
+	alumnosPrueba[2].legajo = (int) 15;
+	alumnosPrueba[2].DNI = (int) 16;
+	strcpy( alumnosPrueba[2].nombre, "María" );
+	strcpy( alumnosPrueba[2].apellido, "Paz" );
 	
-	alumnosDataFd = open( "../data/alumnos.dat", O_WRONLY | O_TRUNC | O_CREAT, 0666 );
+	alumnosDataFd = open( "../data/prof/alumnos.dat", O_WRONLY | O_TRUNC | O_CREAT, 0666 );
 	for ( int i = 0; i < 3; i++ ) {
 		write( alumnosDataFd, alumnosPrueba + i, sizeof (Alumno_t) );
 	}
@@ -337,6 +359,30 @@ void create_test_data() {
 		printf( "* Buf en Tema %d:   %1024s.\n", j + 1, bufTema );
 		
 		close( temasFd );
+	}
+}
+
+
+
+// ---------------------------------------------------------------------------------
+// show_list - TEST
+// ---------------------------------------------------------------------------------
+/* Muestra la lista cargada entera.
+ */
+void show_list( Nodo_t *startNodeShow ) {
+	Nodo_t	*nodoCursor = startNodeShow;
+	
+	printf( "\n### Lista cargada ###\n\n" );
+	
+	for ( int i = 0; nodoCursor != NULL; i++ ) {
+		printf( "\n[ Alumno N° %d ]\n", i + 1 );
+		
+		printf( "* Legajo: %d\n", nodoCursor->dato.legajo );
+		printf( "* DNI: %d\n", nodoCursor->dato.DNI );
+		printf( "* Nombre: %s\n", nodoCursor->dato.nombre );
+		printf( "* Apellido: %s\n", nodoCursor->dato.apellido );
+		
+		nodoCursor = nodoCursor->nextNode;
 	}
 }
 

@@ -55,4 +55,5 @@
 	void 				cargar_lista_archivo( int archivoFd, Nodo_t **inicioLista );
 	void 				*validacion_alumno( void *args );	// MULTI-THREADED.
 	void 				create_test_data();
+	void 				show_list( Nodo_t *startNodeShow );
 #endif
