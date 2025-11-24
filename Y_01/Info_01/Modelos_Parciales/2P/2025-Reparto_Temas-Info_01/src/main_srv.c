@@ -13,7 +13,7 @@
  */
 
 /* # COMPILACIÓN #
- * clear; gcc -Wall --pedantic-errors main_srv.c sock-lib.c -o ../bin/srv.bin
+ * clear; gcc -Wall --pedantic-errors -g main_srv.c sock-lib.c -o ../bin/srv.bin
  */
 
 
@@ -98,7 +98,7 @@ int manejar_alumnos( int port ) {
 		} else {
 
 			working = 1;
-			nThreads = 1;
+			nThreads = 0;
 			tids = (pthread_t *) malloc( sizeof (pthread_t) );
 			
 			do {
@@ -110,16 +110,20 @@ int manejar_alumnos( int port ) {
 					nThreads++;
 					tids = (pthread_t *) reallocarray( tids, nThreads, sizeof (pthread_t) );
 					
-					printf( "* TID creado: %ld.\n", tids[nThreads - 1] );
-					
-					// # Agrupar bien los argumentos de threads como estructuras... #
-					argThread = (ThreadArg_t *) malloc( sizeof (ThreadArg_t) );
-					argThread->startList = &startNode;	// Inicializa los argumentos para pasar a threads.
-					argThread->inputFd = clientFd;		// FD del alumno.
-					
-					pthread_create( tids + nThreads - 1, NULL, validacion_alumno, (void *) argThread );
-					pthread_detach( tids[nThreads - 1] );	// Libera recursos (incluyendo argumentos) cuando termina.
-					printf( "* Thread detacheado.\n" );
+					if ( tids == NULL ) {
+						printf( "\n[ ERROR: NO SE PUDO ALOJAR MEMORIA DINÁMICA. ]\n\n" );
+					} else {
+						
+						// # Agrupar bien los argumentos de threads como estructuras... #
+						argThread = (ThreadArg_t *) malloc( sizeof (ThreadArg_t) );
+						argThread->startList = &startNode;	// Inicializa los argumentos para pasar a threads.
+						argThread->inputFd = clientFd;		// FD del alumno.
+						
+						pthread_create( tids + nThreads - 1, NULL, validacion_alumno, (void *) argThread );
+						pthread_detach( tids[nThreads - 1] );	// Libera recursos (incluyendo argumentos) cuando termina.
+						
+						printf( "* TID creado: %ld [DETACHED].\n", tids[nThreads - 1] );
+					}
 				}
 			} while ( working == 1 );
 			
