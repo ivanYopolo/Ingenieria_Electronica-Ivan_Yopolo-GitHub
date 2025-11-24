@@ -110,22 +110,25 @@ int manejar_alumnos( int port ) {
 					nThreads++;
 					tids = (pthread_t *) reallocarray( tids, nThreads, sizeof (pthread_t) );
 					
-					printf( "* TID creado: %ld.\n", tids[nThreads] );
+					printf( "* TID creado: %ld.\n", tids[nThreads - 1] );
 					
 					// # Agrupar bien los argumentos de threads como estructuras... #
 					argThread = (ThreadArg_t *) malloc( sizeof (ThreadArg_t) );
 					argThread->startList = &startNode;	// Inicializa los argumentos para pasar a threads.
 					argThread->inputFd = clientFd;		// FD del alumno.
 					
-					pthread_create( tids, NULL, validacion_alumno, (void *) argThread );
-					// pthread_detach( tids[nThreads] );	// Libera recursos (incluyendo argumentos) cuando termina.
-					// printf( "* Thread detacheado.\n" );
+					pthread_create( tids + nThreads - 1, NULL, validacion_alumno, (void *) argThread );
+					pthread_detach( tids[nThreads - 1] );	// Libera recursos (incluyendo argumentos) cuando termina.
+					printf( "* Thread detacheado.\n" );
 				}
 			} while ( working == 1 );
 			
+			/*
 			for ( int k = 0; k < (nThreads - 1); k++ ) {
 				pthread_join( tids[k], NULL );
+				// free( argThread... );
 			}
+			*/
 		}	// Archivo abierto exitosamente.
 	}	// Socket abierto exitosamente.
 	
@@ -304,7 +307,7 @@ void *validacion_alumno( void * args ) {
 	close( alumFd );
 	free( args );
 	// # TEST #
-	usleep( 9000000 );
+	usleep( 3000000 );
 	printf( "{ Terminó el usleep() }\n" );
 	pthread_exit( NULL );
 	return NULL;
